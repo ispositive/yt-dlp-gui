@@ -2,9 +2,7 @@ name: yt-dlp GUI CI Builder
 
 on:
   push:
-    branches: [ "**" ] # Trigger for all branches
-  pull_request:
-    branches: [ "**" ] # Trigger for all branches
+    branches: [ "master" ]
 
 jobs:
 
