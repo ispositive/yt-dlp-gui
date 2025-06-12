@@ -218,12 +218,14 @@ namespace yt_dlp_gui.Wrappers {
             Options["--format"] = format_id;
 
             if (letYtDlpMux) {
-                Options["--print"] = "[finalpath]%(filepath)q";
+                Options["--no-simulate"] = ""; // Ensure download occurs
+                Options["--print"] = "after_move:[finalpath]%(filepath)q"; // Capture final path at the correct stage
+                // Do NOT add `targetpath` to `this.Files` for the main video file when letYtDlpMux is true.
             } else {
                 if (targetpath.getExt() != originext) {
                     Options["--remux-video"] = targetpath.getExt();
                 }
-                Files.Add(targetpath);
+                Files.Add(targetpath); // Add to Files only if not letting yt-dlp mux and manage its own output path capture.
             }
 
             Options["--output"] = Path.ChangeExtension(targetpath, ".%(ext)s").QP();
@@ -288,15 +290,14 @@ namespace yt_dlp_gui.Wrappers {
             process.StartInfo = info;
             process.EnableRaisingEvents = true;
             process.OutputDataReceived += (s, e) => {
-                Debug.WriteLine(e.Data, "STD");
+                Debug.WriteLine($"YT-DLP_STDOUT: {e.Data}", "DLP_EXEC"); // Log all stdout
+
                 if (!string.IsNullOrWhiteSpace(e.Data)) {
                     const string finalPathPrefix = "[finalpath]";
                     if (e.Data.StartsWith(finalPathPrefix)) {
                         ActualOutputFile = e.Data.Substring(finalPathPrefix.Length).Trim();
-                        // Optionally, if we need to notify immediately:
-                        // finalPathCallback?.Invoke(ActualOutputFile);
-                        // But for now, just setting the property is enough.
-                        // Do not pass this specific line to stdall/stdout if it's only for path capture.
+                        Debug.WriteLine($"Captured ActualOutputFile: {ActualOutputFile}", "DLP_EXEC_FINALPATH");
+                        // This line is processed here and should not go to stdall/stdout general handlers
                     } else {
                         stdall?.Invoke(e.Data);
                         stdout?.Invoke(e.Data);
