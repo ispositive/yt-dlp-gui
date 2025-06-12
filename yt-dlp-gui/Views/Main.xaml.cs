@@ -628,7 +628,7 @@ namespace yt_dlp_gui.Views {
             var regexSearch = new string(Path.GetInvalidFileNameChars());
             return Regex.Replace(filename, string.Format("[{0}]", Regex.Escape(regexSearch)), "_");
         }
-        private async void CommandBinding_SaveAs_Executed(object sender, System.Windows.Input.ExecutedRoutedEventArgs e) {
+        public async void CommandBinding_SaveAs_Executed(object sender, System.Windows.Input.ExecutedRoutedEventArgs e) {
             var dialog = new SaveFileDialog();
             if (!string.IsNullOrEmpty(Data.TargetFile)) {
                 dialog.InitialDirectory = Path.GetDirectoryName(Data.TargetFile);
@@ -792,8 +792,7 @@ namespace yt_dlp_gui.Views {
 
             // 利用反射機制查詢 Lang 物件是否包含指定的 key 屬性
             var Lang = App.Lang.Status;
-            var propertyInfo = Lang.GetType().GetProperty(key, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-
+            var propertyInfo = Lang.GetType().GetProperty(key, BindingFlags.IgnoreCase | BindingFlags.Public | BindingF
             // 如果 Lang 物件不包含指定的 key 屬性，則返回空字串
             if (propertyInfo == null)
                 return key;
@@ -808,4 +807,3 @@ namespace yt_dlp_gui.Views {
         }
     }
 }
-
