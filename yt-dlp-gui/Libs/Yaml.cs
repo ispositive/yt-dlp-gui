@@ -36,7 +36,7 @@ namespace Libs.Yaml {
                     return deserializer.Deserialize<T>(reader);
                 }
             }
-            return new T();
+            // return new T(); // CS0162: Unreachable code due to prior return or conditional exit.
         }
         public static string Serialize(object obj) {
             var s = new SerializerBuilder()
@@ -49,7 +49,10 @@ namespace Libs.Yaml {
         public static void Save(string path, object graph) {
             FileInfo info = new FileInfo(path);
             try {
-                Directory.CreateDirectory(info.DirectoryName);
+                var directoryPath = info.DirectoryName;
+                if (!string.IsNullOrEmpty(directoryPath)) {
+                    Directory.CreateDirectory(directoryPath);
+                }
                 using (var yaml = new StreamWriter(info.FullName, false, Encoding.UTF8)) {
                     var s = new SerializerBuilder()
                     .WithTypeInspector(inner => new CommentGatheringTypeInspector(inner))
@@ -62,12 +65,16 @@ namespace Libs.Yaml {
             } catch { };
         }
         public static void Load(this IYamlConfig obj, string path) {
-            MethodInfo mi = typeof(Yaml).GetMethod(nameof(Yaml.Open)); //方法
+            MethodInfo? mi = typeof(Yaml).GetMethod(nameof(Yaml.Open)); //方法
+            if (mi == null) return; // Guard against GetMethod returning null
+
             if (mi.IsGenericMethod) {
                 //泛型呼叫
                 var func = mi.MakeGenericMethod(new[] { obj.GetType() });
                 var data = func.Invoke(null, new[] { path }) as IYamlConfig; //参数
-                Util.PropertyCopy(data, obj);
+                if (data != null) { // Add null check for data
+                    Util.PropertyCopy(data, obj);
+                }
                 obj._YAMLPATH = path;
             }
         }
@@ -79,6 +86,6 @@ namespace Libs.Yaml {
         }
     }
     public class IYamlConfig {
-        [YamlIgnore] public string _YAMLPATH { get; set; }
+        [YamlIgnore] public string? _YAMLPATH { get; set; }
     }
 }

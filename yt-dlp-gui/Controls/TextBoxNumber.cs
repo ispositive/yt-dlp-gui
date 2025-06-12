@@ -30,9 +30,13 @@ namespace yt_dlp_gui.Controls.Behaviors {
         }
         private static void onNumberChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e) {
             var t = (dpo as TextBoxNumber);
-            t.NumberToText();
+            if (t != null) { // Null check for t
+                t.NumberToText();
+            }
         }
         private void NumberToText() {
+            if (AssociatedObject == null) return; // Null check for AssociatedObject
+
             if (Number == 0 && !AssociatedObject.IsFocused) {
                 AssociatedObject.Text = "なし";
                 IsEmpty = true;
@@ -144,7 +148,8 @@ namespace yt_dlp_gui.Controls.Behaviors {
         }
         //驗證數字
         private static readonly Regex patten = new Regex(@"^[0-9]+\.?[0-9]*$");
-        private bool IsVaild(string str) {
+        private bool IsVaild(string? str) { // Changed to string?
+            if (string.IsNullOrEmpty(str)) return false; // Handle null or empty
             return patten.IsMatch(str);
         }
     }

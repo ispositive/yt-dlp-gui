@@ -260,7 +260,7 @@ namespace yt_dlp_gui.Wrappers {
         }
         private static Regex ErrSign = new Regex(@"^(?=.*?ERROR)(?=.*?sign)(?=.*?confirm)", RegexOptions.IgnoreCase);
         private static Regex ErrUnsupported = new Regex(@"^(?=.*?ERROR)(?=.*?Unsupported)", RegexOptions.IgnoreCase);
-        public Process Exec(Action<string> stdall = null, Action<string> stdout = null, Action<string> stderr = null) {
+        public Process? Exec(Action<string>? stdall = null, Action<string>? stdout = null, Action<string>? stderr = null) {
             var fn = Path_DLP;
             if (!File.Exists(fn)) {
                 return null;

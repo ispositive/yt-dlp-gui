@@ -6,9 +6,9 @@ using System.Windows;
 namespace yt_dlp_gui {
     using IoPath = System.IO.Path;
     public partial class App :Application {
-        public static string AppExe;
-        public static string AppPath;
-        public static string AppName;
+        public static string? AppExe;
+        public static string? AppPath;
+        public static string? AppName;
         private void LoadPath() {
             AppExe = Environment.ProcessPath;
             AppPath = IoPath.GetDirectoryName(AppExe);
