@@ -65,7 +65,7 @@ jobs:
       shell: pwsh
 
     - name: Upload Build Artifact
-      uses: actions/upload-artifact@v3.1.0
+      uses: actions/upload-artifact@v4.3.4
       with:
         name: yt-dlp-gui-${{ github.run_number }}-${{ matrix.configuration }}
         path: ./publish_output
