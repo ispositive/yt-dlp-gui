@@ -180,16 +180,18 @@
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="S1"/>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="S2"/>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="S3"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S4"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S5"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S6"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S_TBR_V"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S4_V"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S5_V"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S6_V"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="1" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoRes}"/>
                                 <TextBlock Grid.Column="2" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoDynamicRange}"/>
                                 <TextBlock Grid.Column="3" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoFPS}"/>
-                                <TextBlock Grid.Column="4" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoExt}"/>
-                                <TextBlock Grid.Column="5" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoCodec}"/>
-                                <TextBlock Grid.Column="6" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoSize}"/>
+                                <TextBlock Grid.Column="4" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="TBR"/>
+                                <TextBlock Grid.Column="5" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoExt}"/>
+                                <TextBlock Grid.Column="6" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoCodec}"/>
+                                <TextBlock Grid.Column="7" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.VideoSize}"/>
                             </Grid>
                             <Separator Grid.Row="1" Height="2"/>
                             <ScrollViewer Grid.Row="2" x:Name="DropDownScrollViewer">
@@ -270,18 +272,18 @@
                             </Grid.RowDefinitions>
                             <Grid Margin="0,4,0,0">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S0"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S1"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S2"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S3"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S4"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S5"/>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S6"/>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S0"/>      <!-- Icon (no header text) -->
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S1"/>      <!-- ASR -->
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S_TBR_A"/> <!-- NEW: TBR -->
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S4_A"/>    <!-- Audio Ext -->
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S5_A"/>    <!-- Audio Codec -->
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="S6_A"/>    <!-- Audio Size -->
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Grid.Column="1" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.AudioSampleRate}"/>
-                                <TextBlock Grid.Column="4" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.AudioExt}"/>
-                                <TextBlock Grid.Column="5" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.AudioCodec}"/>
-                                <TextBlock Grid.Column="6" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.AudioSize}"/>
+                                <TextBlock Grid.Column="2" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="TBR"/>
+                                <TextBlock Grid.Column="3" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.AudioExt}"/>
+                                <TextBlock Grid.Column="4" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.AudioCodec}"/>
+                                <TextBlock Grid.Column="5" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.AudioSize}"/>
                             </Grid>
                             <Separator Grid.Row="1" Height="2"/>
                             <ScrollViewer Grid.Row="2" x:Name="DropDownScrollViewer">
