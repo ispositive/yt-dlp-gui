@@ -2,7 +2,9 @@ name: yt-dlp GUI CI Builder
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "**" ] # Trigger for all branches
+  pull_request:
+    branches: [ "**" ] # Trigger for all branches
 
 jobs:
 
@@ -35,10 +37,35 @@ jobs:
       run: dotnet restore $env:Solution_Name
     
     - name: Build
-      run: dotnet publish -c ${{ matrix.configuration }} -r win-x64 --self-contained true -p:PublishReadyToRun=true -p:PublishSingleFile=true 
+      run: dotnet publish -c ${{ matrix.configuration }} -r win-x64 --self-contained true -p:PublishReadyToRun=true -p:PublishSingleFile=true -o ./publish_output
     
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v3.1.0
+    - name: Verify Build
+      run: |
+        $exePath = "./publish_output/yt-dlp-gui.exe"
+        Write-Host "Looking for executable at $exePath"
+        if (-not (Test-Path $exePath)) {
+          Write-Error "Executable not found at $exePath"
+          Get-ChildItem -Path ./publish_output -Recurse
+          exit 1
+        }
+        Write-Host "Attempting to start $exePath"
+        Start-Process $exePath
+        Write-Host "Waiting for 5 seconds..."
+        Start-Sleep -Seconds 5
+        $process = Get-Process yt-dlp-gui -ErrorAction SilentlyContinue
+        if ($null -eq $process) {
+          Write-Error "Process yt-dlp-gui did not start or crashed."
+          exit 1
+        } else {
+          Write-Host "Process yt-dlp-gui started successfully. Killing it now."
+          Stop-Process -Name yt-dlp-gui -Force
+          Write-Host "Process killed."
+          exit 0
+        }
+      shell: pwsh
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4.3.4
       with:
-        name: yt-dlp-gui-${{ github.sha }}-${{ matrix.configuration }}
-        path: "D:\\a\\yt-dlp-gui\\yt-dlp-gui\\yt-dlp-gui\\bin\\Debug\\net6.0-windows10.0.17763.0\\win-x64\\publish"
+        name: yt-dlp-gui-${{ github.run_number }}-${{ matrix.configuration }}
+        path: ./publish_output
