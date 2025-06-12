@@ -641,10 +641,10 @@ namespace yt_dlp_gui.Views {
             dialog.Filter = $"{App.Lang.Files.image}|*.jpg;*.webp";
             dialog.FileName = Path.ChangeExtension(OrigFileName, ".jpg");
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
-                DownloadThumbnail(dialog.FileName);
+                await DownloadThumbnail(dialog.FileName); // Await the async method
             }
         }
-        private void DownloadThumbnail(string toFile) {
+        private async Task DownloadThumbnail(string toFile) { // Make method async Task
             var origExt = Path.GetExtension(Data.Thumbnail);
             var origin = Path.ChangeExtension(Data.TargetFile, origExt);
             //var target = Path.ChangeExtension(Data.TargetFile, ".jpg");
@@ -652,7 +652,7 @@ namespace yt_dlp_gui.Views {
             var progress = new Progress<double>(percentage => {
                 Debug.Write($"\rDownloading... {percentage:0.00}%");
             });
-            await Web.Download(Data.Thumbnail, origin, progress, Data.ProxyEnabled ? Data.ProxyUrl : null); // CS1998: Await async Web.Download
+            await Web.Download(Data.Thumbnail, origin, progress, Data.ProxyEnabled ? Data.ProxyUrl : null);
             //convert to target ext
             if (Path.GetExtension(origin).ToLower() != Path.GetExtension(target)) {
                 FFMPEG.DownloadUrl(origin, target);
