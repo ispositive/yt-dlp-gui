@@ -70,7 +70,7 @@ namespace yt_dlp_gui.Views {
             InitClipboard();
 
             //run update check
-            Task.Run(Inits);
+            _ = Task.Run(Inits); // CS4014: Explicitly fire and forget for top-level init
 
             //Output Lang templet
             //Yaml.Save(App.Path(App.Folders.root, "lang.yaml"), new Lang());
@@ -253,8 +253,8 @@ namespace yt_dlp_gui.Views {
             if (currentDate != Data.LastCheckUpdate) needcheck = true; //cross date
 
             if (needcheck) {
-                var releaseData = await Web.GetLastTag();
-                var last = releaseData.FirstOrDefault();
+                var releaseData = await Web.GetLastTag(); // CS1998: Await the async call
+                var last = releaseData?.FirstOrDefault(); // Add null conditional access
                 if (last != null) {
                     Data.ReleaseData = releaseData;
                     Data.LastVersion = last.tag_name;
@@ -278,7 +278,7 @@ namespace yt_dlp_gui.Views {
             Data.Video = new();
             Data.NeedCookie = Data.UseCookie == UseCookie.Always;
 
-            Task.Run(() => {
+            _ = Task.Run(() => { // CS4014: Explicitly fire and forget Analyze_Start's background work
                 GetInfo();
                 Data.IsAnalyze = false;
 
@@ -310,7 +310,7 @@ namespace yt_dlp_gui.Views {
                 //Reading Chapters
                 {
                     Data.Chapters.Clear();
-                    if (Data.Video.chapters != null && Data.Video.chapters.Any()) {
+                    if (Data.Video?.chapters?.Any() == true) {
                         Data.Chapters.Add(new Chapters() { title = App.Lang.Main.ChaptersAll, type = ChaptersType.None });
                         Data.Chapters.Add(new Chapters() { title = App.Lang.Main.ChaptersSplite, type = ChaptersType.Split });
                         Data.Chapters.AddRange(Data.Video.chapters);
@@ -344,7 +344,7 @@ namespace yt_dlp_gui.Views {
                         Data.Subtitles.Add(new Subs() { name = App.Lang.Main.SubtitleNone });
                         Data.hasSubtitle = false;
                     }
-                    Data.Subtitles.AddRange(subs);
+                    Data.Subtitles.AddRange(subs.OfType<Subs>().ToList());
                 }
                 var BestUrl = Data.Thumbnails.LastOrDefault()?.url;
                 if (BestUrl != null && Web.Head(BestUrl)) {
@@ -462,9 +462,10 @@ namespace yt_dlp_gui.Views {
 
                 //進度更新為0
                 ClearStatus();
-                _ = Task.Run(() => {
-                    var dlp = new DLP(Data.Url);
-                    List<Task> tasks = new();
+                try {
+                    await Task.Run(() => { // CS1998: Await the main download task
+                        var dlp = new DLP(Data.Url);
+                        List<Task> tasks = new();
                     tasks.Add(Task.Run(() => {
                         //var dlp = new DLP(Data.Url);
                         RunningDLP.Add(dlp);
@@ -482,8 +483,10 @@ namespace yt_dlp_gui.Views {
                         .Proxy(Data.ProxyUrl, Data.ProxyEnabled)
                         .UseAria2(Data.UseAria2)
                         .LimitRate(Data.LimitRate)
-                        .DownloadSections(Data.TimeRange)
-                        .SplitChapters(Data.selectedChapter, Data.TargetFile);
+                        .DownloadSections(Data.TimeRange);
+                        if (Data.selectedChapter != null) {
+                            dlp.SplitChapters(Data.selectedChapter, Data.TargetFile);
+                        }
 
                         switch (type) {
                             case DownloadType.Video:
@@ -547,7 +550,7 @@ namespace yt_dlp_gui.Views {
                         //Send notification when download completed
                         try {
                             if (Data.UseNotifications) {
-                                Util.NotifySound(Data.PathNotify);
+                                if (!string.IsNullOrEmpty(Data.PathNotify)) Util.NotifySound(Data.PathNotify);
                                 var toast = new ToastContentBuilder()
                                     .AddText(Data.Video.title)
                                     .AddText(App.Lang.Dialog.DownloadCompleted)
@@ -565,8 +568,11 @@ namespace yt_dlp_gui.Views {
                                         .SetBackgroundActivation()
                                     );
                                 }
-                                if (files.ContainsKey("thumb")) {
-                                    toast.AddAppLogoOverride(new Uri(files["thumb"]));
+                                if (files.TryGetValue("thumb", out string? thumbPath) && !string.IsNullOrEmpty(thumbPath) && File.Exists(thumbPath)) {
+                                    try {
+                                        toast.AddAppLogoOverride(new Uri(thumbPath));
+                                    } catch (UriFormatException) { /* Log or handle */ }
+                                      catch (ArgumentNullException) { /* Log or handle */ }
                                 }
                                 toast.AddButton(
                                     new ToastButton()
@@ -576,11 +582,13 @@ namespace yt_dlp_gui.Views {
                                 );
                                 toast.Show();
                             }
-                        } catch (Exception ex) { }
+                        } catch (Exception /* ex */) { }
                     }
                     //Clear downloading status
-                    Data.IsDownload = false;
+                    // Data.IsDownload = false; // Moved to finally block
                 });
+            } finally {
+                Data.IsDownload = false; // Ensure IsDownload is reset
             }
         }
 
@@ -593,8 +601,12 @@ namespace yt_dlp_gui.Views {
                 }
             } else {
                 var dialog = new SaveFileDialog();
-                dialog.InitialDirectory = Path.GetDirectoryName(Data.TargetFile);
-                dialog.FileName = Path.GetFileName(Data.TargetFile);
+                if (!string.IsNullOrEmpty(Data.TargetFile)) {
+                    dialog.InitialDirectory = Path.GetDirectoryName(Data.TargetFile);
+                    dialog.FileName = Path.GetFileName(Data.TargetFile);
+                }
+                // If Data.TargetFile is null/empty, InitialDirectory will be default, FileName will be empty.
+                // This is standard behavior for SaveFileDialog.
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                     Data.RemuxVideo = true;
                     Data.TargetPath = Path.GetDirectoryName(dialog.FileName);
@@ -618,8 +630,12 @@ namespace yt_dlp_gui.Views {
         }
         private async void CommandBinding_SaveAs_Executed(object sender, System.Windows.Input.ExecutedRoutedEventArgs e) {
             var dialog = new SaveFileDialog();
-            dialog.InitialDirectory = Path.GetDirectoryName(Data.TargetFile);
+            if (!string.IsNullOrEmpty(Data.TargetFile)) {
+                dialog.InitialDirectory = Path.GetDirectoryName(Data.TargetFile);
+            }
             var OrigExt = Path.GetExtension(Data.Thumbnail);
+            // Path.GetFileName can handle null, returning null. If Data.TargetFile is null, OrigFileName will be based on null.
+            // DefaultExt and Filter will still work. FileName might be just ".jpg" if OrigFileName is null.
             var OrigFileName = Path.ChangeExtension(Path.GetFileName(Data.TargetFile), OrigExt);
             dialog.DefaultExt = ".jpg";
             dialog.Filter = $"{App.Lang.Files.image}|*.jpg;*.webp";
@@ -636,7 +652,7 @@ namespace yt_dlp_gui.Views {
             var progress = new Progress<double>(percentage => {
                 Debug.Write($"\rDownloading... {percentage:0.00}%");
             });
-            Web.Download(Data.Thumbnail, origin, progress, Data.ProxyEnabled ? Data.ProxyUrl : null).Wait();
+            await Web.Download(Data.Thumbnail, origin, progress, Data.ProxyEnabled ? Data.ProxyUrl : null); // CS1998: Await async Web.Download
             //convert to target ext
             if (Path.GetExtension(origin).ToLower() != Path.GetExtension(target)) {
                 FFMPEG.DownloadUrl(origin, target);
@@ -650,7 +666,9 @@ namespace yt_dlp_gui.Views {
 
         private void Button_Subtitle(object sender, RoutedEventArgs e) {
             var dialog = new SaveFileDialog();
-            dialog.InitialDirectory = Path.GetDirectoryName(Data.TargetFile);
+            if (!string.IsNullOrEmpty(Data.TargetFile)) {
+                dialog.InitialDirectory = Path.GetDirectoryName(Data.TargetFile);
+            }
             //dialog.Filter = "SubRip | *.srt";
             //dialog.DefaultExt = Data.selectedSub.key + ".srt";
             dialog.DefaultExt = ".srt";
@@ -695,10 +713,12 @@ namespace yt_dlp_gui.Views {
         }
         private void ComboBox_TextChanged(object sender, TextChangedEventArgs e) {
             var combo = sender as System.Windows.Controls.ComboBox;
-            if (combo.SelectedIndex == -1) {
-                Data.PathTEMP = combo.Text;
-            } else {
-                Data.PathTEMP = combo.SelectedValue.ToString();
+            if (combo != null) {
+                if (combo.SelectedIndex == -1) {
+                    Data.PathTEMP = combo.Text; // combo.Text can be null if editable ComboBox is empty
+                } else {
+                    Data.PathTEMP = combo.SelectedValue?.ToString() ?? string.Empty;
+                }
             }
         }
 

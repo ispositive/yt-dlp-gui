@@ -18,6 +18,7 @@ namespace yt_dlp_gui.Controls {
             "Kind", typeof(IconKind), typeof(Icons), new FrameworkPropertyMetadata(IconKind.None, OnKindChanged));
         private static void OnKindChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e) {
             var d = dpo as Icons;
+            if (d == null) return;
             d.data.Kind = d.Kind;
         }
         public IconKind Kind {
@@ -29,6 +30,7 @@ namespace yt_dlp_gui.Controls {
             "Spin", typeof(bool), typeof(Icons), new FrameworkPropertyMetadata(false, OnSpinChanged));
         private static void OnSpinChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e) {
             var d = dpo as Icons;
+            if (d == null) return;
             d.data.Spin = (bool)e.NewValue;
         }
         public bool Spin {
@@ -40,6 +42,7 @@ namespace yt_dlp_gui.Controls {
             "Size", typeof(double), typeof(Icons), new FrameworkPropertyMetadata(24d, OnSizeChanged));
         private static void OnSizeChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e) {
             var d = dpo as Icons;
+            if (d == null) return;
             d.Width = d.Height = (double)e.NewValue;
         }
         public double Size {
@@ -51,6 +54,7 @@ namespace yt_dlp_gui.Controls {
             "IsLoading", typeof(bool), typeof(Icons), new FrameworkPropertyMetadata(false, OnIsLoadingChanged));
         private static void OnIsLoadingChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e) {
             var d = dpo as Icons;
+            if (d == null) return;
             var isloading = (bool)e.NewValue;
             d.data.Spin = isloading ? true : d.Spin;
             d.data.Kind = isloading ? IconKind.Loading : d.Kind;

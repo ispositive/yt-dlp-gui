@@ -16,10 +16,10 @@ namespace yt_dlp_gui.Controls {
         public Menu() {
             InitializeComponent();
         }
-        public static Menu Create(MenuDataItem item, FrameworkElement target = null, MenuPlacement placement = MenuPlacement.BottomRight) {
+        public static Menu Create(MenuDataItem item, FrameworkElement? target = null, MenuPlacement placement = MenuPlacement.BottomRight) {
             return Create(item.Items, target, placement);
         }
-        public static Menu Create(IEnumerable<MenuDataItem> menu, FrameworkElement target = null, MenuPlacement placement = MenuPlacement.BottomRight) {
+        public static Menu Create(IEnumerable<MenuDataItem> menu, FrameworkElement? target = null, MenuPlacement placement = MenuPlacement.BottomRight) {
             var m = new Menu();
             if (menu.Any()) {
                 m.ItemsSource = menu;
@@ -52,10 +52,10 @@ namespace yt_dlp_gui.Controls {
             }
             return m;
         }
-        public static Menu Open(MenuDataItem item, FrameworkElement target = null, MenuPlacement placement = MenuPlacement.BottomRight) {
+        public static Menu Open(MenuDataItem item, FrameworkElement? target = null, MenuPlacement placement = MenuPlacement.BottomRight) {
             return Open(item.Items, target, placement);
         }
-        public static Menu Open(IEnumerable<MenuDataItem> menu, FrameworkElement target = null, MenuPlacement placement = MenuPlacement.BottomRight) {
+        public static Menu Open(IEnumerable<MenuDataItem> menu, FrameworkElement? target = null, MenuPlacement placement = MenuPlacement.BottomRight) {
             var m = Create(menu, target, placement);
             m.IsOpen = true;
             return m;
@@ -87,14 +87,14 @@ namespace yt_dlp_gui.Controls {
         public object Header { get; set; }
         public DataTemplate HeaderTemplate { get; set; } = null;
         public Brush HeaderColor { get; set; } = Brushes.White;
-        public Action Action { get; set; }
+        public Action? Action { get; set; }
         public Window Owner { get; set; } = null;
-        public MenuDataItem(object header = null, Action execute = null) : this(header, IconKind.None, execute) { }
-        public MenuDataItem(object header, params MenuDataItem[] subitems) : this(header, IconKind.None, subitems) { }
-        public MenuDataItem(object header, IconKind icon, params MenuDataItem[] subitems) : this(header, icon) {
+        public MenuDataItem(object? header = null, Action? execute = null) : this(header, IconKind.None, execute) { }
+        public MenuDataItem(object? header, params MenuDataItem[] subitems) : this(header, IconKind.None, subitems) { }
+        public MenuDataItem(object? header, IconKind icon, params MenuDataItem[] subitems) : this(header, icon) {
             Items.AddRange(subitems);
         }
-        public MenuDataItem(object header, IconKind icon, Action execute = null) {
+        public MenuDataItem(object? header, IconKind icon, Action? execute = null) {
             Type = MenuType.normal;
             Icon = icon;
             Header = header;

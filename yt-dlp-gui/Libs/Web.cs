@@ -47,12 +47,12 @@ namespace Libs {
             var res = await Load(@"https://api.github.com/repos/Kannagi0303/yt-dlp-gui/releases");
             if (!string.IsNullOrWhiteSpace(res.content)) {
                 try {
-                    return JsonConvert.DeserializeObject<List<GitRelease>>(res.content);
+                    return JsonConvert.DeserializeObject<List<GitRelease>>(res.content) ?? new List<GitRelease>();
                 } catch { };
             }
-            return null;
+            return new List<GitRelease>();
         }
-        public static async Task Download(string downloadUrl, string savePath, IProgress<double> progress = null, string proxyUrl = null) {
+        public static async Task Download(string downloadUrl, string savePath, IProgress<double>? progress = null, string? proxyUrl = null) {
             Debug.WriteLine($"save {downloadUrl} to {savePath} use {proxyUrl}");
             var httpClientHandler = new HttpClientHandler();
             if (!string.IsNullOrEmpty(proxyUrl)) {
@@ -78,7 +78,7 @@ namespace Libs {
             //var fileExt = Path.GetExtension(fileName);
             //var filePath = Path.ChangeExtension(savePath, fileExt);
 
-            var response = httpClient.GetAsync(downloadUrl).Result;
+            var response = await httpClient.GetAsync(downloadUrl);
             if (response.IsSuccessStatusCode) {
                 var contentLength = response.Content.Headers.ContentLength;
                 if (contentLength == null) {
@@ -87,12 +87,12 @@ namespace Libs {
 
                 var totalBytes = contentLength.Value;
                 var downloadedBytes = 0L;
-                using (var contentStream = response.Content.ReadAsStreamAsync().Result) {
+                using (var contentStream = await response.Content.ReadAsStreamAsync()) {
                     using (var fileStream = new FileStream(savePath, FileMode.Create, FileAccess.Write)) {
                         var buffer = new byte[8192];
                         int bytesRead;
-                        while ((bytesRead = contentStream.ReadAsync(buffer, 0, buffer.Length).Result) > 0) {
-                            fileStream.WriteAsync(buffer, 0, bytesRead).Wait();
+                        while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0) {
+                            await fileStream.WriteAsync(buffer, 0, bytesRead);
                             downloadedBytes += bytesRead;
 
                             if (progress != null) {
