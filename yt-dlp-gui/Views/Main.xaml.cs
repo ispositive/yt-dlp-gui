@@ -711,7 +711,7 @@ namespace yt_dlp_gui.Views {
             Data.Width = Width;
             Data.Height = Height;
         }
-        private void ComboBox_TextChanged(object sender, TextChangedEventArgs e) {
+        void ComboBox_TextChanged(object sender, TextChangedEventArgs e) {
             var combo = sender as System.Windows.Controls.ComboBox;
             if (combo != null) {
                 if (combo.SelectedIndex == -1) {
@@ -792,7 +792,7 @@ namespace yt_dlp_gui.Views {
 
             // 利用反射機制查詢 Lang 物件是否包含指定的 key 屬性
             var Lang = App.Lang.Status;
-            var propertyInfo = Lang.GetType().GetProperty(key, BindingFlags.IgnoreCase | BindingFlags.Public | BindingF
+            var propertyInfo = Lang.GetType().GetProperty(key, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
             // 如果 Lang 物件不包含指定的 key 屬性，則返回空字串
             if (propertyInfo == null)
                 return key;
