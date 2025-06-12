@@ -360,13 +360,14 @@
                                             </Style>
                                         </Grid.Resources>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition SharedSizeGroup="S0" />
-                                            <ColumnDefinition SharedSizeGroup="S1" />
-                                            <ColumnDefinition SharedSizeGroup="S2" />
-                                            <ColumnDefinition SharedSizeGroup="S3" />
-                                            <ColumnDefinition SharedSizeGroup="S4" />
-                                            <ColumnDefinition SharedSizeGroup="S5" />
-                                            <ColumnDefinition SharedSizeGroup="S6" />
+                                            <ColumnDefinition SharedSizeGroup="S0" />      <!-- Icon -->
+                                            <ColumnDefinition SharedSizeGroup="S1" />      <!-- Resolution -->
+                                            <ColumnDefinition SharedSizeGroup="S2" />      <!-- Dynamic Range -->
+                                            <ColumnDefinition SharedSizeGroup="S3" />      <!-- FPS -->
+                                            <ColumnDefinition SharedSizeGroup="S_TBR_V" /> <!-- NEW: TBR -->
+                                            <ColumnDefinition SharedSizeGroup="S4_V" />    <!-- Video Ext -->
+                                            <ColumnDefinition SharedSizeGroup="S5_V" />    <!-- VCodec -->
+                                            <ColumnDefinition SharedSizeGroup="S6_V" />    <!-- Filesize -->
                                         </Grid.ColumnDefinitions>
                                         <controls:Icons Size="14">
                                             <controls:Icons.Style>
@@ -382,10 +383,11 @@
                                         </controls:Icons>
                                         <TextBlock FontSize="10" Grid.Column="1" HorizontalAlignment="Left" Text="{Binding resolution}"/>
                                         <TextBlock FontSize="10" Grid.Column="2" HorizontalAlignment="Center" Text="{Binding dynamic_range}"/>
-                                        <TextBlock FontSize="10" Grid.Column="3" HorizontalAlignment="Center" Text="{Binding fps}"/>
-                                        <TextBlock FontSize="10" Grid.Column="4" Text="{Binding video_ext}"/>
-                                        <TextBlock FontSize="10" Grid.Column="5" Text="{Binding vcodec}"/>
-                                        <TextBlock FontSize="10" Grid.Column="6" HorizontalAlignment="Right" controls:Filesize.Bytes="{Binding filesize}"/>
+                                        <TextBlock FontSize="10" Grid.Column="3" HorizontalAlignment="Center" Text="{Binding fps, StringFormat={}{0}fps}"/>
+                                        <TextBlock FontSize="10" Grid.Column="4" HorizontalAlignment="Center" Text="{Binding tbr, StringFormat={}{0}k, TargetNullValue=N/A}"/>
+                                        <TextBlock FontSize="10" Grid.Column="5" Text="{Binding video_ext}"/>
+                                        <TextBlock FontSize="10" Grid.Column="6" Text="{Binding vcodec}"/>
+                                        <TextBlock FontSize="10" Grid.Column="7" HorizontalAlignment="Right" controls:Filesize.Bytes="{Binding filesize}"/>
                                     </Grid>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
@@ -446,13 +448,12 @@
                                             </Style>
                                         </Grid.Resources>
                                         <Grid.ColumnDefinitions>
-                                            <ColumnDefinition SharedSizeGroup="S0" />
-                                            <ColumnDefinition SharedSizeGroup="S1" />
-                                            <ColumnDefinition SharedSizeGroup="S2" />
-                                            <ColumnDefinition SharedSizeGroup="S3" />
-                                            <ColumnDefinition SharedSizeGroup="S4" />
-                                            <ColumnDefinition SharedSizeGroup="S5" />
-                                            <ColumnDefinition SharedSizeGroup="S6" />
+                                            <ColumnDefinition SharedSizeGroup="S0" />      <!-- Icon -->
+                                            <ColumnDefinition SharedSizeGroup="S1" />      <!-- ASR -->
+                                            <ColumnDefinition SharedSizeGroup="S_TBR_A" /> <!-- NEW: TBR -->
+                                            <ColumnDefinition SharedSizeGroup="S4_A" />    <!-- Audio Ext -->
+                                            <ColumnDefinition SharedSizeGroup="S5_A" />    <!-- ACodec -->
+                                            <ColumnDefinition SharedSizeGroup="S6_A" />    <!-- Filesize -->
                                         </Grid.ColumnDefinitions>
                                         <controls:Icons Size="14">
                                             <controls:Icons.Style>
@@ -466,10 +467,11 @@
                                                 </Style>
                                             </controls:Icons.Style>
                                         </controls:Icons>
-                                        <TextBlock FontSize="10" Grid.Column="1" HorizontalAlignment="Left" Text="{Binding asr, StringFormat={}{0}Hz, TargetNullValue=Unknow}"/>
-                                        <TextBlock FontSize="10" Grid.Column="4" Text="{Binding audio_ext}"/>
-                                        <TextBlock FontSize="10" Grid.Column="5" Text="{Binding acodec}"/>
-                                        <TextBlock FontSize="10" Grid.Column="6" HorizontalAlignment="Right" controls:Filesize.Bytes="{Binding filesize}"/>
+                                        <TextBlock FontSize="10" Grid.Column="1" HorizontalAlignment="Left" Text="{Binding asr, StringFormat={}{0}Hz, TargetNullValue=N/A}"/>
+                                        <TextBlock FontSize="10" Grid.Column="2" HorizontalAlignment="Center" Text="{Binding tbr, StringFormat={}{0}k, TargetNullValue=N/A}"/>
+                                        <TextBlock FontSize="10" Grid.Column="3" Text="{Binding audio_ext}"/>
+                                        <TextBlock FontSize="10" Grid.Column="4" Text="{Binding acodec}"/>
+                                        <TextBlock FontSize="10" Grid.Column="5" HorizontalAlignment="Right" controls:Filesize.Bytes="{Binding filesize}"/>
                                     </Grid>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
