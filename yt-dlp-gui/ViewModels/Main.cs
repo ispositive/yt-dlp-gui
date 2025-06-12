@@ -230,7 +230,6 @@ namespace yt_dlp_gui.Views {
             public ModifiedType ModifiedType { get; set; } = ModifiedType.Modified;
             public string TimeRange { get; set; } = string.Empty;
             public string LimitRate { get; set; } = string.Empty;
-            public bool LetYtDlpMux { get; set; } = false;
             public Enable Enable { get; set; } = new();
             public bool AutoSaveConfig { get; set; } = false;
             public string Html { get; set; } = string.Empty;
@@ -400,12 +399,11 @@ namespace yt_dlp_gui.Views {
             [Description("Advance")]
             [YamlMember(Order = 1301)] public string ConfigurationFile { get; set; } = string.Empty;
             [YamlMember(Order = 1302)] public bool UseAria2 { get; set; } = false;
-            [YamlMember(Order = 1303)] public bool LetYtDlpMux { get; set; } = false;
-            [YamlMember(Order = 1304)] public bool EmbedThumbnail { get; set; } = false;
-            [YamlMember(Order = 1305)] public bool EmbedChapters { get; set; } = false;
-            [YamlMember(Order = 1306)] public bool EmbedSubtitles { get; set; } = false;
-            [YamlMember(Order = 1307)] public string LimitRate { get; set; } = string.Empty;
-            [YamlMember(Order = 1308)] public ModifiedType ModifiedType { get; set; } = ModifiedType.Modified;
+            [YamlMember(Order = 1303)] public bool EmbedThumbnail { get; set; } = false;
+            [YamlMember(Order = 1304)] public bool EmbedChapters { get; set; } = false;
+            [YamlMember(Order = 1305)] public bool EmbedSubtitles { get; set; } = false;
+            [YamlMember(Order = 1306)] public string LimitRate { get; set; } = string.Empty;
+            [YamlMember(Order = 1307)] public ModifiedType ModifiedType { get; set; } = ModifiedType.Modified;
 
             [Description("Options")]
             [YamlMember(Order = 1401)] public bool IsMonitor { get; set; } = false;
@@ -468,42 +466,26 @@ namespace yt_dlp_gui.Views {
                         if (decimal.TryParse(d[5], out decimal d_speed)) s.Speed = d_speed;
                         if (decimal.TryParse(d[6], out decimal d_elapsed)) s.Elapsed = d_elapsed;
 
-                        if (Data.LetYtDlpMux) {
-                            Data.VideoPersent = s.Persent;
-                            Data.AudioPersent = s.Persent;
-                            Data.DNStatus_Infos["Downloaded"] = Util.GetAutoUnit((long)s.Downloaded);
-                            Data.DNStatus_Infos["Total"] = Util.GetAutoUnit((long)s.Total);
-                            Data.DNStatus_Infos["Speed"] = Util.GetAutoUnit((long)s.Speed);
-                            Data.DNStatus_Infos["Elapsed"] = Util.SecToStr(s.Elapsed);
-                        } else {
-                            UpdatePersent(s.Persent);
-                            if (Data.DNStatus_Infos.ContainsKey("Downloader") && Data.DNStatus_Infos["Downloader"] == App.Lang.Status.Native) {
-                                Data.DNStatus_Infos["Downloaded"] = Util.GetAutoUnit((long)Data.DNStatus_Video.Downloaded + (long)Data.DNStatus_Audio.Downloaded);
-                                Data.DNStatus_Infos["Total"] = Util.GetAutoUnit((long)Data.DNStatus_Video.Total + (long)Data.DNStatus_Audio.Total);
-                                Data.DNStatus_Infos["Speed"] = Util.GetAutoUnit((long)Data.DNStatus_Video.Speed + (long)Data.DNStatus_Audio.Speed);
-                                Data.DNStatus_Infos["Elapsed"] = Util.SecToStr(Data.DNStatus_Video.Elapsed + Data.DNStatus_Audio.Elapsed);
-                            }
+                        UpdatePersent(s.Persent);
+                        if (Data.DNStatus_Infos.ContainsKey("Downloader") && Data.DNStatus_Infos["Downloader"] == App.Lang.Status.Native) {
+                            Data.DNStatus_Infos["Downloaded"] = Util.GetAutoUnit((long)Data.DNStatus_Video.Downloaded + (long)Data.DNStatus_Audio.Downloaded);
+                            Data.DNStatus_Infos["Total"] = Util.GetAutoUnit((long)Data.DNStatus_Video.Total + (long)Data.DNStatus_Audio.Total);
+                            Data.DNStatus_Infos["Speed"] = Util.GetAutoUnit((long)Data.DNStatus_Video.Speed + (long)Data.DNStatus_Audio.Speed);
+                            Data.DNStatus_Infos["Elapsed"] = Util.SecToStr(Data.DNStatus_Video.Elapsed + Data.DNStatus_Audio.Elapsed);
                         }
                         Data.DNStatus_Infos["Status"] = App.Lang.Status.Downloading;
                     } else if (regAria.IsMatch(std)) {
                         // aria2
                         Data.DNStatus_Infos["Downloader"] = "aria2c";
-                        var d_aria = Util.GetGroup(regAria, std); // Corrected d to d_aria
-                        if (Data.LetYtDlpMux) {
-                            if (decimal.TryParse(d_aria["persent"], out decimal o_persent_aria)) {
-                                Data.VideoPersent = o_persent_aria;
-                                Data.AudioPersent = o_persent_aria;
-                            }
-                        } else {
-                            if (decimal.TryParse(d_aria["persent"], out decimal o_persent_aria)) {
-                                UpdatePersent(o_persent_aria);
-                            }
+                        var d_aria = Util.GetGroup(regAria, std);
+                        if (decimal.TryParse(d_aria["persent"], out decimal o_persent_aria)) {
+                            UpdatePersent(o_persent_aria);
                         }
                         Data.DNStatus_Infos["Downloaded"] = d_aria["downloaded"];
-                        Data.DNStatus_Infos["Total"] = d_aria["total"]; // Corrected d to d_aria
-                        Data.DNStatus_Infos["Speed"] = d_aria["speed"]; // Corrected d to d_aria
-                        Data.DNStatus_Infos["Elapsed"] = d_aria.GetValueOrDefault("eta", "0s"); // Corrected d to d_aria
-                        Data.DNStatus_Infos["Connections"] = d_aria["cn"]; // Corrected d to d_aria
+                        Data.DNStatus_Infos["Total"] = d_aria["total"];
+                        Data.DNStatus_Infos["Speed"] = d_aria["speed"];
+                        Data.DNStatus_Infos["Elapsed"] = d_aria.GetValueOrDefault("eta", "0s");
+                        Data.DNStatus_Infos["Connections"] = d_aria["cn"];
                         Data.DNStatus_Infos["Status"] = App.Lang.Status.Downloading;
                     } else if (regFF.IsMatch(std)) {
                         // ffmpeg

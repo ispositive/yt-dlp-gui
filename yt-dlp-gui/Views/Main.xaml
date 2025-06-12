@@ -604,7 +604,6 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -652,12 +651,9 @@
                 <!--UseAria2-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ -->
                 <TextBlock Grid.Row="3" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.Aria2}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                 <CheckBox Grid.Row="3" Grid.Column="2" Content="{Binding Source={x:Static app:App.Lang}, Path=Main.Aria2Enabled}" IsEnabled="{Binding Enable.UseAria2}" IsChecked="{Binding UseAria2}" Margin="0,2"/>
-                <!-- Let yt-dlp combine formats -->
-                <TextBlock Grid.Row="4" Text="Let yt-dlp combine formats" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <CheckBox Grid.Row="4" Grid.Column="2" Content="Enabled" IsChecked="{Binding LetYtDlpMux}" Margin="0,2"/>
                 <!--Embeds-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ -->
-                <TextBlock Grid.Row="5" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.Embeds}" VerticalAlignment="Top" Margin="0,3" HorizontalAlignment="Right"/>
-                <Grid Grid.Row="5" Grid.Column="2">
+                <TextBlock Grid.Row="4" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.Embeds}" VerticalAlignment="Top" Margin="0,3" HorizontalAlignment="Right"/>
+                <Grid Grid.Row="4" Grid.Column="2">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition/>
@@ -669,23 +665,23 @@
                 </Grid>
                 <!--EmbedSubs-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ -->
                 <!--
-                    <TextBlock Grid.Row="5" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.EmbedSubs}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                    <CheckBox Grid.Row="5" Grid.Column="2" Content="{Binding Source={x:Static app:App.Lang}, Path=Main.EmbedSubsEnabled}" Margin="0,2" IsChecked="{Binding EmbedSub}"/>
+                    <TextBlock Grid.Row="4" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.EmbedSubs}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    <CheckBox Grid.Row="4" Grid.Column="2" Content="{Binding Source={x:Static app:App.Lang}, Path=Main.EmbedSubsEnabled}" Margin="0,2" IsChecked="{Binding EmbedSub}"/>
                     -->
                 <!--TimeRange-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ -->
-                <StackPanel Grid.Row="6" VerticalAlignment="Center" HorizontalAlignment="Right">
+                <StackPanel Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Right">
                     <TextBlock Text="{Binding Source={x:Static app:App.Lang}, Path=Main.TimeRange}" HorizontalAlignment="Right"/>
                     <TextBlock FontSize="10" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.TimeRangeHits}" Foreground="Gray" HorizontalAlignment="Right"/>
                 </StackPanel>
-                <controls:TextEditor Grid.Row="6" Grid.Column="2" Helper="{Binding Source={x:Static app:App.Lang}, Path=Main.TimeRangeHelper}" Text="{Binding TimeRange}"
+                <controls:TextEditor Grid.Row="5" Grid.Column="2" Helper="{Binding Source={x:Static app:App.Lang}, Path=Main.TimeRangeHelper}" Text="{Binding TimeRange}"
                                          Margin="0,2" EnableHyperlinks="False"/>
                 <!--LimitRate-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ -->
-                <TextBlock Grid.Row="7" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.LimitRate}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <controls:TextEditor Grid.Row="7" Grid.Column="2" Helper="{Binding Source={x:Static app:App.Lang}, Path=Main.LimitRateHelper}" Text="{Binding LimitRate}"
+                <TextBlock Grid.Row="6" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.LimitRate}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                <controls:TextEditor Grid.Row="6" Grid.Column="2" Helper="{Binding Source={x:Static app:App.Lang}, Path=Main.LimitRateHelper}" Text="{Binding LimitRate}"
                                          Margin="0,2" EnableHyperlinks="False"/>
                 <!--Modified-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ -->
-                <TextBlock Grid.Row="8" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.Modified}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                <ComboBox Grid.Row="8" Grid.Column="2" SelectedValue="{Binding ModifiedType}" SelectedValuePath="Tag" IsEnabled="{Binding Enable.UseCookie}" HorizontalAlignment="Left">
+                <TextBlock Grid.Row="7" Text="{Binding Source={x:Static app:App.Lang}, Path=Main.Modified}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                <ComboBox Grid.Row="7" Grid.Column="2" SelectedValue="{Binding ModifiedType}" SelectedValuePath="Tag" IsEnabled="{Binding Enable.UseCookie}" HorizontalAlignment="Left">
                     <ComboBoxItem Content="{Binding Source={x:Static app:App.Lang}, Path=Main.ModifiedModified}" Tag="{x:Static m:ModifiedType.Modified}"/>
                     <ComboBoxItem Content="{Binding Source={x:Static app:App.Lang}, Path=Main.ModifiedCreated}" Tag="{x:Static m:ModifiedType.Created}"/>
                     <ComboBoxItem Content="{Binding Source={x:Static app:App.Lang}, Path=Main.ModifiedUpload}" Tag="{x:Static m:ModifiedType.Upload}"/>
