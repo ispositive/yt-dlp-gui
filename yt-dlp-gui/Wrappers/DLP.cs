@@ -18,7 +18,6 @@ namespace yt_dlp_gui.Wrappers {
         static public string Path_Aria2 { get; set; } = string.Empty;
         static public string Path_FFMPEG { get; set; } = string.Empty;
         public List<string> Files { get; set; } = new List<string>();
-        public string? ActualOutputFile { get; private set; }
         public Dictionary<string, string> Options { get; set; } = new Dictionary<string, string>();
         public string Url { get; set; } = string.Empty;
         public bool IsLive { get; set; } = false;
@@ -213,22 +212,14 @@ namespace yt_dlp_gui.Wrappers {
                 return string.Join(" ", args);
             }
         }
-        public DLP DownloadFormat(string format_id, string targetpath, string originext, bool letYtDlpMux = false) {
-            Debug.WriteLine($"id:{format_id} path:{targetpath} mux_by_ytdlp:{letYtDlpMux}", "DownloadFormat");
+        public DLP DownloadFormat(string format_id, string targetpath, string originext) {
+            Debug.WriteLine($"id:{format_id} path:{targetpath}", "DownloadFormat");
             Options["--format"] = format_id;
-
-            if (letYtDlpMux) {
-                Options["--no-simulate"] = ""; // Ensure download occurs
-                Options["--print"] = "after_move:[finalpath]%(filepath)q"; // Capture final path at the correct stage
-                // Do NOT add `targetpath` to `this.Files` for the main video file when letYtDlpMux is true.
-            } else {
-                if (targetpath.getExt() != originext) {
-                    Options["--remux-video"] = targetpath.getExt();
-                }
-                Files.Add(targetpath); // Add to Files only if not letting yt-dlp mux and manage its own output path capture.
+            if (targetpath.getExt() != originext) {
+                Options["--remux-video"] = targetpath.getExt();
             }
-
             Options["--output"] = Path.ChangeExtension(targetpath, ".%(ext)s").QP();
+            Files.Add(targetpath);
             return this;
         }
         public DLP DownloadVideo(string format_id, string source_ext, string targetpath) {
@@ -274,8 +265,6 @@ namespace yt_dlp_gui.Wrappers {
             if (!File.Exists(fn)) {
                 return null;
             }
-            // Reset ActualOutputFile at the start of execution
-            ActualOutputFile = null;
             var info = new ProcessStartInfo() {
                 FileName = fn,
                 Arguments = Args,
@@ -290,18 +279,11 @@ namespace yt_dlp_gui.Wrappers {
             process.StartInfo = info;
             process.EnableRaisingEvents = true;
             process.OutputDataReceived += (s, e) => {
-                Debug.WriteLine($"YT-DLP_STDOUT: {e.Data}", "DLP_EXEC"); // Log all stdout
+                Debug.WriteLine($"YT-DLP_STDOUT: {e.Data}", "DLP_EXEC"); // Keep this general log
 
                 if (!string.IsNullOrWhiteSpace(e.Data)) {
-                    const string finalPathPrefix = "[finalpath]";
-                    if (e.Data.StartsWith(finalPathPrefix)) {
-                        ActualOutputFile = e.Data.Substring(finalPathPrefix.Length).Trim();
-                        Debug.WriteLine($"Captured ActualOutputFile: {ActualOutputFile}", "DLP_EXEC_FINALPATH");
-                        // This line is processed here and should not go to stdall/stdout general handlers
-                    } else {
-                        stdall?.Invoke(e.Data);
-                        stdout?.Invoke(e.Data);
-                    }
+                    stdall?.Invoke(e.Data);
+                    stdout?.Invoke(e.Data);
                 }
             };
             process.ErrorDataReceived += (s, e) => {
