@@ -18,6 +18,7 @@ namespace yt_dlp_gui.Wrappers {
         static public string Path_Aria2 { get; set; } = string.Empty;
         static public string Path_FFMPEG { get; set; } = string.Empty;
         public List<string> Files { get; set; } = new List<string>();
+        public string? ActualOutputFile { get; private set; }
         public Dictionary<string, string> Options { get; set; } = new Dictionary<string, string>();
         public string Url { get; set; } = string.Empty;
         public bool IsLive { get; set; } = false;
@@ -212,14 +213,20 @@ namespace yt_dlp_gui.Wrappers {
                 return string.Join(" ", args);
             }
         }
-        public DLP DownloadFormat(string format_id, string targetpath, string originext) {
-            Debug.WriteLine($"id:{format_id} path:{targetpath}", "DownloadFormat");
+        public DLP DownloadFormat(string format_id, string targetpath, string originext, bool letYtDlpMux = false) {
+            Debug.WriteLine($"id:{format_id} path:{targetpath} mux_by_ytdlp:{letYtDlpMux}", "DownloadFormat");
             Options["--format"] = format_id;
-            if (targetpath.getExt() != originext) {
-                Options["--remux-video"] = targetpath.getExt();
+
+            if (letYtDlpMux) {
+                Options["--print"] = "[finalpath]%(filepath)q";
+            } else {
+                if (targetpath.getExt() != originext) {
+                    Options["--remux-video"] = targetpath.getExt();
+                }
+                Files.Add(targetpath);
             }
+
             Options["--output"] = Path.ChangeExtension(targetpath, ".%(ext)s").QP();
-            Files.Add(targetpath);
             return this;
         }
         public DLP DownloadVideo(string format_id, string source_ext, string targetpath) {
@@ -265,6 +272,8 @@ namespace yt_dlp_gui.Wrappers {
             if (!File.Exists(fn)) {
                 return null;
             }
+            // Reset ActualOutputFile at the start of execution
+            ActualOutputFile = null;
             var info = new ProcessStartInfo() {
                 FileName = fn,
                 Arguments = Args,
@@ -281,8 +290,17 @@ namespace yt_dlp_gui.Wrappers {
             process.OutputDataReceived += (s, e) => {
                 Debug.WriteLine(e.Data, "STD");
                 if (!string.IsNullOrWhiteSpace(e.Data)) {
-                    stdall?.Invoke(e.Data);
-                    stdout?.Invoke(e.Data);
+                    const string finalPathPrefix = "[finalpath]";
+                    if (e.Data.StartsWith(finalPathPrefix)) {
+                        ActualOutputFile = e.Data.Substring(finalPathPrefix.Length).Trim();
+                        // Optionally, if we need to notify immediately:
+                        // finalPathCallback?.Invoke(ActualOutputFile);
+                        // But for now, just setting the property is enough.
+                        // Do not pass this specific line to stdall/stdout if it's only for path capture.
+                    } else {
+                        stdall?.Invoke(e.Data);
+                        stdout?.Invoke(e.Data);
+                    }
                 }
             };
             process.ErrorDataReceived += (s, e) => {

@@ -507,7 +507,7 @@ namespace yt_dlp_gui.Views {
                                 .EmbedChapters(Data.EmbedChapters)
                                 .Thumbnail(Data.SaveThumbnail, Data.TargetFile, Data.EmbedThumbnail)
                                 .Subtitle(Data.selectedSub.key, Data.TargetFile, Data.EmbedSubtitles)
-                                .DownloadFormat(vid, Data.TargetFile, Data.OriginExt);
+                                .DownloadFormat(vid, Data.TargetFile, Data.OriginExt, Data.LetYtDlpMux);
                                 break;
                         }
                         var repoter = new StatusRepoter(Data);
@@ -528,13 +528,37 @@ namespace yt_dlp_gui.Views {
 
                         //post-process
                         Dictionary<string, string> files = new Dictionary<string, string>();
+                        string mainVideoFile = null;
+
+                        if (!string.IsNullOrEmpty(dlp.ActualOutputFile) && File.Exists(dlp.ActualOutputFile)) {
+                            mainVideoFile = dlp.ActualOutputFile;
+                            if (mainVideoFile.isVideo()) { // Assuming Util.isVideo exists or create similar check based on DLPExtend
+                                files["video"] = mainVideoFile;
+                            }
+                            // Apply modification time if necessary
+                            if (Data.ModifiedType == ModifiedType.Upload) {
+                                if (DateTimeOffset.TryParseExact(Data.Video.upload_date, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset tryDate)) {
+                                    File.SetLastWriteTimeUtc(mainVideoFile, tryDate.DateTime);
+                                }
+                            }
+                        }
+
                         foreach (string donepath in dlp.Files) {
                             if (File.Exists(donepath)) {
-                                if (donepath.isVideo()) files["video"] = donepath;
-                                if (donepath.isImage()) files["thumb"] = donepath;
+                                if (donepath.isVideo() && mainVideoFile == null) { // Only if mainVideoFile not already set by ActualOutputFile
+                                    files["video"] = donepath;
+                                    mainVideoFile = donepath; // Fallback
+                                }
+                                if (donepath.isImage()) { // Assuming Util.isImage
+                                    files["thumb"] = donepath;
+                                }
+
+                                // Apply modification time, ensure not to double-process mainVideoFile if already handled
                                 if (Data.ModifiedType == ModifiedType.Upload) {
-                                    if (DateTimeOffset.TryParseExact(Data.Video.upload_date, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset tryDate)) {
-                                        File.SetLastWriteTimeUtc(donepath, tryDate.DateTime);
+                                    if (donepath != mainVideoFile || string.IsNullOrEmpty(dlp.ActualOutputFile)) { // Process if it's an aux file, or if it's the main file AND ActualOutput was not used
+                                         if (DateTimeOffset.TryParseExact(Data.Video.upload_date, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset tryDate)) {
+                                             File.SetLastWriteTimeUtc(donepath, tryDate.DateTime);
+                                         }
                                     }
                                 }
                             }
