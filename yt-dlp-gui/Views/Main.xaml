@@ -387,7 +387,7 @@
                                         <TextBlock FontSize="10" Grid.Column="4" HorizontalAlignment="Center" Text="{Binding tbr, StringFormat={}{0}k, TargetNullValue=N/A}"/>
                                         <TextBlock FontSize="10" Grid.Column="5" Text="{Binding video_ext}"/>
                                         <TextBlock FontSize="10" Grid.Column="6" Text="{Binding vcodec}"/>
-                                        <TextBlock FontSize="10" Grid.Column="7" HorizontalAlignment="Right" controls:Filesize.Bytes="{Binding filesize}"/>
+                                        <TextBlock FontSize="10" Grid.Column="7" HorizontalAlignment="Right" controls:Filesize.Bytes="{Binding filesize}" controls:Filesize.IsApproximate="{Binding isFilesizeApprox}"/>
                                     </Grid>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
@@ -471,7 +471,7 @@
                                         <TextBlock FontSize="10" Grid.Column="2" HorizontalAlignment="Center" Text="{Binding tbr, StringFormat={}{0}k, TargetNullValue=N/A}"/>
                                         <TextBlock FontSize="10" Grid.Column="3" Text="{Binding audio_ext}"/>
                                         <TextBlock FontSize="10" Grid.Column="4" Text="{Binding acodec}"/>
-                                        <TextBlock FontSize="10" Grid.Column="5" HorizontalAlignment="Right" controls:Filesize.Bytes="{Binding filesize}"/>
+                                        <TextBlock FontSize="10" Grid.Column="5" HorizontalAlignment="Right" controls:Filesize.Bytes="{Binding filesize}" controls:Filesize.IsApproximate="{Binding isFilesizeApprox}"/>
                                     </Grid>
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
