@@ -16,6 +16,16 @@ namespace yt_dlp_gui.Controls {
         public static readonly DependencyProperty UnitProperty
             = DependencyProperty.RegisterAttached("Unit", typeof(FilesizeUnit), typeof(Filesize),
                 new FrameworkPropertyMetadata(FilesizeUnit.Auto, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, BytesPropertyChanged));
+
+    public static readonly DependencyProperty IsApproximateProperty
+        = DependencyProperty.RegisterAttached("IsApproximate", typeof(bool), typeof(Filesize),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, BytesPropertyChanged)); // Use same callback to re-render
+
+    public static void SetIsApproximate(DependencyObject dpo, bool value)
+        => dpo.SetValue(IsApproximateProperty, value);
+
+    public static bool GetIsApproximate(DependencyObject dpo)
+        => (bool)dpo.GetValue(IsApproximateProperty);
         private static void BytesPropertyChanged(DependencyObject dpo, DependencyPropertyChangedEventArgs e) {
             var (d, v) = (dpo as TextBlock, GetBytes(dpo));
             var value = v.HasValue ? v.Value : 0;
@@ -44,6 +54,10 @@ namespace yt_dlp_gui.Controls {
                 }
             }
             var txt = adjustedSize.ToString("n" + decimalPlaces);
+            bool isApprox = GetIsApproximate(dpo);
+            if (isApprox && v.HasValue && v.Value != 0) { // Only add ~ if there's a value and it's not zero
+                txt = "~ " + txt;
+            }
             d.Inlines.Clear();
             if (!IsNegative) {
                 d.Inlines.Add(new Run(txt));

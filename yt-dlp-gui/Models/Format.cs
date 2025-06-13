@@ -9,6 +9,8 @@ namespace yt_dlp_gui.Models {
         public event PropertyChangedEventHandler? PropertyChanged;
         public decimal? asr { get; set; } = null;
         public long? filesize { get; set; } = null; //bytes
+        public long? filesize_approx { get; set; } = null;
+        public bool isFilesizeApprox { get; set; } = false;
         public string format_id { get; set; } = string.Empty;
         public string format_note { get; set; } = "";
         public decimal? fps { get; set; } = null;
@@ -90,6 +92,14 @@ namespace yt_dlp_gui.Models {
     public static class ExtensionFormat {
         public static void LoadFromVideo(this ConcurrentObservableCollection<Format> source, List<Format> from) { //, Video from
             foreach (var row in from) { //from.formats
+                if (row.filesize_approx.HasValue) {
+                    row.filesize = row.filesize_approx.Value; // Use approximate filesize if available
+                    row.isFilesizeApprox = true;
+                } else {
+                    // If filesize_approx is not present, filesize already holds the exact value (or null) from JSON.
+                    // isFilesizeApprox remains false (its default).
+                    row.isFilesizeApprox = false;
+                }
                 //分类
                 if (row.vcodec != "none" && row.acodec != "none") {
                     row.type = FormatType.package;
