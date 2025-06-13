@@ -367,7 +367,7 @@
                                             <ColumnDefinition SharedSizeGroup="S_TBR_V" /> <!-- NEW: TBR -->
                                             <ColumnDefinition SharedSizeGroup="S4_V" />    <!-- Video Ext -->
                                             <ColumnDefinition SharedSizeGroup="S5_V" />    <!-- VCodec -->
-                                            <ColumnDefinition SharedSizeGroup="S6_V" />    <!-- Filesize -->
+                                            <ColumnDefinition SharedSizeGroup="S6_V" MinWidth="90" />    <!-- Filesize -->
                                         </Grid.ColumnDefinitions>
                                         <controls:Icons Size="14">
                                             <controls:Icons.Style>
@@ -453,7 +453,7 @@
                                             <ColumnDefinition SharedSizeGroup="S_TBR_A" /> <!-- NEW: TBR -->
                                             <ColumnDefinition SharedSizeGroup="S4_A" />    <!-- Audio Ext -->
                                             <ColumnDefinition SharedSizeGroup="S5_A" />    <!-- ACodec -->
-                                            <ColumnDefinition SharedSizeGroup="S6_A" />    <!-- Filesize -->
+                                            <ColumnDefinition SharedSizeGroup="S6_A" MinWidth="90" />    <!-- Filesize -->
                                         </Grid.ColumnDefinitions>
                                         <controls:Icons Size="14">
                                             <controls:Icons.Style>
