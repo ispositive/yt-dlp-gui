@@ -38,7 +38,7 @@ namespace yt_dlp_gui.Libs {
                 return idToFilesizeMap;
             }
 
-            string[] lines = fOutput.Split(new[] { '\r\n', '\r', '\n' }, System.StringSplitOptions.None);
+            string[] lines = fOutput.Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None);
 
             int headerLineIndex = -1;
             int filesizeColumnStartIndex = -1;
