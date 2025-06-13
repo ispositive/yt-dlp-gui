@@ -2,16 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Newtonsoft.Json; // Added for JsonConverter attribute
 
 namespace yt_dlp_gui.Models {
     public enum FormatType { video, audio, package, other }
-    [JsonConverter(typeof(FormatFilesizeConverter))] // Added JsonConverter attribute
     public class Format : INotifyPropertyChanged {
         public event PropertyChangedEventHandler? PropertyChanged;
         public decimal? asr { get; set; } = null;
         public long? filesize { get; set; } = null; //bytes
-        // filesize_approx is removed as per requirement
+        public long? filesize_approx { get; set; } = null; // Restored
         public bool isFilesizeApprox { get; set; } = false;
         public string format_id { get; set; } = string.Empty;
         public string format_note { get; set; } = "";
@@ -94,16 +92,30 @@ namespace yt_dlp_gui.Models {
     public static class ExtensionFormat {
         public static void LoadFromVideo(this ConcurrentObservableCollection<Format> source, List<Format> from) { //, Video from
             foreach (var row in from) { //from.formats
-                // Filesize processing is now handled by FormatFilesizeConverter.
-                // The old logic for determining filesize and isFilesizeApprox is removed.
+                // 'row' is a Format object.
+                // 'row.filesize' and 'row.filesize_approx' are assumed to have been populated
+                // by the JSON deserializer if the corresponding fields were in the JSON.
 
+                long? exact_size_from_json = row.filesize; // Value as read from JSON
+                long? approx_size_from_json = row.filesize_approx; // Value as read from JSON
+
+                if (exact_size_from_json.HasValue && exact_size_from_json.Value > 0) {
+                    // Prioritize exact filesize if available and positive
+                    row.filesize = exact_size_from_json.Value;
+                    row.isFilesizeApprox = false;
+                } else if (approx_size_from_json.HasValue && approx_size_from_json.Value > 0) {
+                    // Use approximate filesize if exact is not available/positive, and approx is available/positive
+                    row.filesize = approx_size_from_json.Value;
+                    row.isFilesizeApprox = true;
+                } else {
+                    // Neither is available or positive
+                    row.filesize = null;
+                    row.isFilesizeApprox = false;
+                }
                 // All other processing of 'row' (type classification, codec renaming, etc.) follows this block.
                 // No other part of this method should alter 'row.isFilesizeApprox'.
 
                 // Classification logic
-                // NOTE: The classification logic in the converter might need to be moved here
-                // if it depends on other properties being set by yt-dlp not covered by direct JSON mapping.
-                // For now, assuming the converter handles 'type' sufficiently or it's correctly mapped.
                 bool vcodecPresent = !string.IsNullOrEmpty(row.vcodec) && row.vcodec.ToLower() != "none";
                 bool acodecPresent = !string.IsNullOrEmpty(row.acodec) && row.acodec.ToLower() != "none";
 
