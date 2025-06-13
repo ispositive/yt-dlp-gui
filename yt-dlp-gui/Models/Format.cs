@@ -147,31 +147,39 @@ namespace yt_dlp_gui.Models {
                 // No other part of this method should alter 'row.isFilesizeApprox'.
 
                 // Classification logic
-                // NOTE: The classification logic in the converter might need to be moved here
-                // if it depends on other properties being set by yt-dlp not covered by direct JSON mapping.
-                // For now, assuming the converter handles 'type' sufficiently or it's correctly mapped.
-                bool vcodecPresent = !string.IsNullOrEmpty(row.vcodec) && row.vcodec.ToLower() != "none";
-                bool acodecPresent = !string.IsNullOrEmpty(row.acodec) && row.acodec.ToLower() != "none";
+                bool hasActualVideoCodec = false;
+                if (!string.IsNullOrEmpty(row.vcodec)) {
+                    string vcodecLower = row.vcodec.ToLowerInvariant();
+                    if (vcodecLower != "none" && vcodecLower != "audio only") {
+                        hasActualVideoCodec = true;
+                    }
+                }
 
-                if (vcodecPresent && acodecPresent) {
+                bool hasActualAudioCodec = false;
+                if (!string.IsNullOrEmpty(row.acodec)) {
+                    string acodecLower = row.acodec.ToLowerInvariant();
+                    if (acodecLower != "none") { // "unknown" is a valid state of presence
+                        hasActualAudioCodec = true;
+                    }
+                }
+
+                if (hasActualVideoCodec && hasActualAudioCodec) {
                     row.type = FormatType.package;
                     if (row.height.HasValue && row.width.HasValue) {
                         row.resolution = $"{row.width.Value}x{row.height.Value}";
                     }
-                } else if (vcodecPresent) {
+                } else if (hasActualVideoCodec) {
                     row.type = FormatType.video;
                     if (row.height.HasValue && row.width.HasValue) {
                         row.resolution = $"{row.width.Value}x{row.height.Value}";
                     }
-                } else if (acodecPresent) {
-                    // acodec is present, vcodec is not. This includes acodec == "unknown".
+                } else if (hasActualAudioCodec) {
                     row.type = FormatType.audio;
                 } else {
-                    // Both vcodec and acodec are effectively absent (null, empty, or "none").
-                    // This is where we need to be careful for misclassified videos or audios.
-                    bool isLikelyAudio = row.format != null && row.format.ToLower().Contains("audio only");
+                    // Fallback: Check format string if codecs are not definitively present or are "none"
+                    bool isLikelyAudio = !string.IsNullOrEmpty(row.format) && row.format.ToLowerInvariant().Contains("audio only");
                     bool isLikelyVideo = row.height.HasValue && row.height.Value > 0 &&
-                                         (row.format != null && !row.format.ToLower().Contains("storyboard") && !row.format.ToLower().Contains("images"));
+                                         (!string.IsNullOrEmpty(row.format) && !row.format.ToLowerInvariant().Contains("storyboard") && !row.format.ToLowerInvariant().Contains("images"));
 
                     if (isLikelyAudio) {
                         row.type = FormatType.audio;
