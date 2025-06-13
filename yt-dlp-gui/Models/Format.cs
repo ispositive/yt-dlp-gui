@@ -96,21 +96,19 @@ namespace yt_dlp_gui.Models {
                 // 'row.filesize' and 'row.filesize_approx' are assumed to have been populated
                 // by the JSON deserializer if the corresponding fields were in the JSON.
 
-                long? exact_size_from_json = row.filesize;
-                long? approx_size_from_json = row.filesize_approx;
+                long? exact_size_from_json = row.filesize; // Value as read from JSON
+                long? approx_size_from_json = row.filesize_approx; // Value as read from JSON
 
-                if (approx_size_from_json.HasValue && approx_size_from_json.Value > 0) {
-                    // A positive approximate filesize is available. This is the definitive source.
-                    row.filesize = approx_size_from_json.Value;
-                    row.isFilesizeApprox = true;
-                } else if (exact_size_from_json.HasValue) {
-                    // No valid (positive) approximation was found, but an exact filesize is available.
-                    // (This also handles the case where approx_size_from_json might have been present but <= 0)
-                    // Ensure 'row.filesize' reflects this exact value from original JSON deserialization.
+                if (exact_size_from_json.HasValue && exact_size_from_json.Value > 0) {
+                    // Prioritize exact filesize if available and positive
                     row.filesize = exact_size_from_json.Value;
                     row.isFilesizeApprox = false;
+                } else if (approx_size_from_json.HasValue && approx_size_from_json.Value > 0) {
+                    // Use approximate filesize if exact is not available/positive, and approx is available/positive
+                    row.filesize = approx_size_from_json.Value;
+                    row.isFilesizeApprox = true;
                 } else {
-                    // Neither a positive approximate filesize nor an exact filesize is available from JSON.
+                    // Neither is available or positive
                     row.filesize = null;
                     row.isFilesizeApprox = false;
                 }
