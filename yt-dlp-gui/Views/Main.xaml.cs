@@ -1,4 +1,4 @@
-﻿using Libs;
+using Libs;
 using Libs.Yaml;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Newtonsoft.Json;
@@ -135,7 +135,7 @@ namespace yt_dlp_gui.Views {
         }
         //Regex For Clipboard
         private Regex _frgPat = new Regex("<!--StartFragment-->(.*)<!--EndFragment-->", RegexOptions.Multiline | RegexOptions.Compiled);
-        private Regex _matchUrls = new Regex(@"(https?|ftp|file)\://[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+!'\(\)\*\-\._~%]*)*", RegexOptions.Compiled);
+        private Regex _matchUrls = new Regex(@"(https?|ftp|file)\://[A-Za-z0-9\.\-]+(/[A-Za-z0-9\?\&\=;\+\!'\\(\)\*\-\._~%]*)*", RegexOptions.Compiled);
         public void InitClipboard() {
             Data.PropertyChanged += (s, e) => {
                 switch (e.PropertyName) {
@@ -233,7 +233,6 @@ namespace yt_dlp_gui.Views {
                     } else if (!string.IsNullOrWhiteSpace(dep_youtubedl)) {
                         Data.PathYTDLP = DLP.Path_DLP = dep_youtubedl;
                     }
-
                 }
                 if (Regex.IsMatch(DLP.Path_DLP, isYoutubeDl)) DLP.Type = DLP.DLPType.youtube_dl;
                 if (string.IsNullOrWhiteSpace(DLP.Path_Aria2)) {
@@ -360,8 +359,8 @@ namespace yt_dlp_gui.Views {
                 } else {
                     full = Path.Combine(Data.TargetPath, Data.Video._filename);
                 }
-                //Data.TargetName = GetValidFileName(Data.Video.title) + ".tmp"; //预设挡案名称
-                Data.TargetName = full; //预设挡案名称
+                //Data.TargetName = GetValidFileName(Data.Video.title) + ".tmp"; //预设档案名称
+                Data.TargetName = full; //预设档案名称
 
             });
             dlp.Err(DLP.DLPError.Sign, () => {
@@ -449,7 +448,7 @@ namespace yt_dlp_gui.Views {
             } else {
                 var overwrite = true;
                 RunningDLP.Clear();
-                //如果檔案已存在
+                //如果文件已存在
                 if (File.Exists(Data.TargetFile) && type == DownloadType.Normal) {
                     var mb = System.Windows.Forms.MessageBox.Show(
                         $"{App.Lang.Dialog.FileExist}\n",
@@ -460,7 +459,7 @@ namespace yt_dlp_gui.Views {
                 }
                 Data.IsDownload = true;
 
-                //進度更新為0
+                //进度更新为0
                 ClearStatus();
                 try {
                     await Task.Run(() => { // CS1998: Await the main download task
@@ -590,6 +589,7 @@ namespace yt_dlp_gui.Views {
             } finally {
                 Data.IsDownload = false; // Ensure IsDownload is reset
             }
+        }
         }
 
         private void Button_Browser(object sender, RoutedEventArgs e) {
@@ -786,23 +786,23 @@ namespace yt_dlp_gui.Views {
     }
     public class LanguageConverter :IValueConverter {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
-            // 檢查輸入值是否為字串
+            // 检查输入值是否为字符串
             if (!(value is string key))
                 return value;
 
-            // 利用反射機制查詢 Lang 物件是否包含指定的 key 屬性
+            // 利用反射机制查询 Lang 物件是否包含指定的 key 属性
             var Lang = App.Lang.Status;
             var propertyInfo = Lang.GetType().GetProperty(key, BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
-            // 如果 Lang 物件不包含指定的 key 屬性，則返回空字串
+            // 如果 Lang 物件不包含指定的 key 属性，则返回空字符串
             if (propertyInfo == null)
                 return key;
 
-            // 如果 Lang 物件包含指定的 key 屬性，則返回相應的值
+            // 如果 Lang 物件包含指定的 key 属性，则返回相应的值
             return propertyInfo.GetValue(Lang)?.ToString() ?? key;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
-            // ConvertBack 未實作，因為此轉換器僅用於單向綁定
+            // ConvertBack 未实现，因为此转换器仅用于单向绑定
             throw new NotImplementedException();
         }
     }
