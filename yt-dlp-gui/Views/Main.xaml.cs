@@ -24,6 +24,7 @@ using WK.Libraries.SharpClipboardNS;
 using yt_dlp_gui.Controls;
 using yt_dlp_gui.Models;
 using yt_dlp_gui.Wrappers;
+using yt_dlp_gui.Libs; // For FormatFOutputParser and SizeStringConverter
 
 
 namespace yt_dlp_gui.Views {
@@ -342,6 +343,38 @@ namespace yt_dlp_gui.Views {
                     Data.Formats.LoadFromVideo(Data.Video.formats);
                     Data.Thumbnails.Reset(Data.Video.thumbnails);
                     Data.RequestedFormats.LoadFromVideo(Data.Video.requested_formats);
+
+                    // Augment format information using -F output
+                    Debug.WriteLine("Attempting to fetch and parse -F output to augment format sizes.");
+                    string fOutput = dlp.GetFormatListingOutput(); // Call the new method in DLP.cs
+
+                    if (!string.IsNullOrWhiteSpace(fOutput)) {
+                        Dictionary<string, string> filesizeMapF = FormatFOutputParser.Parse(fOutput); // Use the new parser
+
+                        if (filesizeMapF.Any()) {
+                            Debug.WriteLine($"Parsed {filesizeMapF.Count} entries from -F output.");
+                            // Augment Data.Formats
+                            foreach (var format in Data.Formats) {
+                                if (!format.filesize.HasValue) {
+                                    if (filesizeMapF.TryGetValue(format.format_id, out string filesizeStrF) && !string.IsNullOrWhiteSpace(filesizeStrF)) {
+                                        Debug.WriteLine($"Found filesize '{filesizeStrF}' for format ID '{format.format_id}' in -F output.");
+                                        ParsedSizeInfo parsedSize = SizeStringConverter.TryParseHumanReadableSize(filesizeStrF);
+                                        if (parsedSize.Success && parsedSize.FilesizeInBytes.HasValue) {
+                                            format.filesize = parsedSize.FilesizeInBytes.Value;
+                                            format.isFilesizeApprox = parsedSize.IsApproximate;
+                                            Debug.WriteLine($"Updated format ID '{format.format_id}': filesize={format.filesize}, isApprox={format.isFilesizeApprox}");
+                                        } else {
+                                            Debug.WriteLine($"Failed to parse size string '{filesizeStrF}' for format ID '{format.format_id}'.");
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            Debug.WriteLine("Parsed no entries from -F output or parser returned empty map.");
+                        }
+                    } else {
+                        Debug.WriteLine("yt-dlp -F output was empty or could not be fetched.");
+                    }
                 }
                 //读取 Subtitles
                 {

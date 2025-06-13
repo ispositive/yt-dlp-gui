@@ -10,10 +10,36 @@ namespace yt_dlp_gui.Models {
     [JsonConverter(typeof(FormatFilesizeConverter))] // Added JsonConverter attribute
     public class Format : INotifyPropertyChanged {
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public decimal? asr { get; set; } = null;
-        public long? filesize { get; set; } = null; //bytes
-        // filesize_approx is removed as per requirement
-        public bool isFilesizeApprox { get; set; } = false;
+
+        private long? _filesize = null;
+        public long? filesize {
+            get => _filesize;
+            set {
+                if (_filesize != value) {
+                    _filesize = value;
+                    OnPropertyChanged(nameof(filesize));
+                    OnPropertyChanged(nameof(FilesizeDisplayString));
+                }
+            }
+        }
+
+        private bool _isFilesizeApprox = false;
+        public bool isFilesizeApprox {
+            get => _isFilesizeApprox;
+            set {
+                if (_isFilesizeApprox != value) {
+                    _isFilesizeApprox = value;
+                    OnPropertyChanged(nameof(isFilesizeApprox));
+                    OnPropertyChanged(nameof(FilesizeDisplayString));
+                }
+            }
+        }
         public string format_id { get; set; } = string.Empty;
         public string format_note { get; set; } = "";
         public decimal? fps { get; set; } = null;
