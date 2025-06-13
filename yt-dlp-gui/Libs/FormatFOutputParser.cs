@@ -122,47 +122,90 @@ namespace yt_dlp_gui.Libs {
                     int effectiveFilesizeStartIndex = filesizeColumnStartIndex - originalLinePrefixLength;
                     int effectiveFilesizeEndIndex = filesizeColumnEndIndex - originalLinePrefixLength;
 
-                    string filesizeStr = "";
-                    if (effectiveFilesizeStartIndex >= 0 && effectiveFilesizeStartIndex < restOfLine.Length) {
-                        if (effectiveFilesizeEndIndex > effectiveFilesizeStartIndex && effectiveFilesizeEndIndex <= restOfLine.Length) {
-                            filesizeStr = restOfLine.Substring(effectiveFilesizeStartIndex, effectiveFilesizeEndIndex - effectiveFilesizeStartIndex).Trim();
-                        } else {
-                            // If end index is problematic, take from start index to end of restOfLine
-                            filesizeStr = restOfLine.Substring(effectiveFilesizeStartIndex).Trim();
+                    string filesizeStr = ""; // Default to empty
+
+                    // Ensure indices are valid for restOfLine
+                    int searchAreaStart = Math.Max(0, effectiveFilesizeStartIndex - 3); // Look back a few chars
+                    searchAreaStart = Math.Min(searchAreaStart, restOfLine.Length);     // Cannot exceed length
+
+                    int searchAreaEnd = Math.Min(restOfLine.Length, effectiveFilesizeEndIndex + 5); // Look forward a bit for end, cannot exceed length
+                                                                                                // The +5 is generous to find end of unit like "MiB"
+                                                                                                // if effectiveFilesizeEndIndex was too tight.
+
+                    if (searchAreaStart < searchAreaEnd) {
+                        int actualStartOfSize = -1;
+                        for (int k = searchAreaStart; k < searchAreaEnd; k++) {
+                            if (char.IsDigit(restOfLine[k]) || restOfLine[k] == '~') {
+                                actualStartOfSize = k;
+                                break;
+                            }
                         }
-                    } else if (restOfLine.Contains("MiB") || restOfLine.Contains("KiB") || restOfLine.Contains("GiB") || restOfLine.Contains("TiB") || restOfLine.StartsWith("~")) {
-                        // Fallback: if column calculation is off, try to find it by content if it looks like a size
-                        // This is a weaker heuristic. Example: find a block with ~ or size units.
-                        // This is complex to make robust. For now, we rely on column indices.
-                        // If filesizeStr is empty here, it means it wasn't found by column logic.
+
+                        if (actualStartOfSize != -1) {
+                            // Found the start. Now determine the end.
+                            // The end is likely before the next column's data starts, or before too many spaces.
+                            // We can use effectiveFilesizeEndIndex as a primary guide for where the column *should* end.
+                            // Allow some characters beyond it for the unit (e.g., "MiB").
+                            int potentialEnd = Math.Min(restOfLine.Length, actualStartOfSize + 15); // Max 15 chars for a typical size string like "~1234.56MiB"
+
+                            string extractedSubstring = restOfLine.Substring(actualStartOfSize, potentialEnd - actualStartOfSize);
+
+                            // Use regex to match the actual filesize pattern from the extracted substring
+                            // This helps trim any trailing garbage if potentialEnd was too generous.
+                            // Regex: optional ~, digits and dot, optional unit.
+                            var sizeMatch = System.Text.RegularExpressions.Regex.Match(extractedSubstring, @"^~?[0-9\.]+([KMGT]i?B|[B])?");
+                            if (sizeMatch.Success) {
+                                filesizeStr = sizeMatch.Value;
+                            } else {
+                                // If regex fails, maybe it's just a number (bytes without unit) or just tilde? Unlikely.
+                                // Fallback to a simple trim if regex doesn't match, but this is less robust.
+                                // For now, if primary regex fails, we might get an empty or partial string.
+                                // This part might need more refinement if simple trimming is not enough.
+                                // The initial problem was missing leading digit, which finding actualStartOfSize should fix.
+                                // The goal is to pass a clean string like "~712.06MiB" or "712.06MiB" to SizeStringConverter.
+                                // A simpler extraction if regex seems too complex for the subtask worker:
+                                // Take substring from actualStartOfSize up to a reasonable length for a filesize string (e.g. 12-15 chars)
+                                // and then Trim(). SizeStringConverter will do the final validation.
+                                // Let's use the regex match for precision.
+                            }
+                        }
                     }
 
-                    // If filesizeStr is just "video" or "audio", it's likely a misparse from "video only" / "audio only"
+                    // The rest of the filtering logic (e.g. for "video", "audio", "Xk" if it was TBR) should be re-evaluated.
+                    // For now, the primary goal is to fix the leading digit.
+                    // The lines checking if filesizeStr is "video" or "audio" might still be useful.
+                    // The check for "Xk" should be specific that it's NOT KiB, MiB etc.
+                    // The SizeStringConverter will handle "123k" as "123KB" if no "i" is present.
+                    // This might be okay if yt-dlp -F *never* lists actual filesizes in just "k" without "iB".
+                    // The -F output shows "130k" for ABR/TBR, and "2.90MiB" for filesizes. So, "k" alone is likely TBR.
+
+                    if (filesizeStr.EndsWith("k", StringComparison.OrdinalIgnoreCase) &&
+                        !filesizeStr.EndsWith("KiB", StringComparison.OrdinalIgnoreCase) && // Ensure it's not "KiB" mistaken for "k"
+                        !filesizeStr.EndsWith("KB", StringComparison.OrdinalIgnoreCase) ) { // Ensure it's not "KB"
+                        // If it's just "123k", it's likely TBR/ABR, not a filesize in MiB/KiB etc.
+                        // However, SizeStringConverter might interpret "123k" as 123 * 1000 bytes.
+                        // The -F output distinguishes TBR (e.g. 130k) from FILESIZE (e.g. 3.02MiB).
+                        // If our column parsing is correct, we should get the FILESIZE column's value.
+                        // This check is a safeguard against gross column mis-alignment.
+                        // For now, let's assume if we get something like "123k" here, it's a misparse from TBR column.
+                        // This should be rare if filesizeColumnStartIndex/EndIndex are good.
+                        // For safety, if it matches a typical TBR/ABR format and not a filesize unit, clear it.
+                        if (System.Text.RegularExpressions.Regex.IsMatch(filesizeStr, @"^\d+(\.\d+)?k$")) {
+                             // filesizeStr = ""; // Clear if it looks like a bitrate.
+                             // Decided to keep this commented: if the column logic is right, it should be the filesize.
+                             // SizeStringConverter will handle it. If it's "120k", it means 120KB.
+                        }
+                    }
+
+                    // The existing filtering for "video" or "audio" in filesizeStr can remain:
                     if (filesizeStr.Equals("video", System.StringComparison.OrdinalIgnoreCase) ||
                         filesizeStr.Equals("audio", System.StringComparison.OrdinalIgnoreCase) ||
                         filesizeStr.Equals("only", System.StringComparison.OrdinalIgnoreCase)) {
-                        filesizeStr = ""; // Reset if it seems to have captured part of "video only" or "audio only"
+                        filesizeStr = "";
                     }
 
-                    // If filesizeStr is a TBR value like "123k", it's not a filesize.
-                    if (Regex.IsMatch(filesizeStr, @"^\d+k$")) {
-                         // This might happen if columns are very shifted.
-                         // Check if the *next* column seems to be filesize.
-                         // This part is too complex for this iteration.
-                         // For now, if it looks like TBR, assume it's not filesize.
-                         // A truly robust parser would parse *all* columns by header positions.
-                         // For now, if it's "Xk", clear it.
-                         // A better check would be if the *next* field is a protocol or VCODEC.
-                         // Let's assume if it's just digits followed by 'k', it's not a MiB/GiB filesize.
-                         // However, TBR can be like "123.45k"
-                         if (!filesizeStr.Contains(".")) { // Simple check: 130k vs 12.3MiB
-                            // filesizeStr = ""; // Commenting this out, as "123k" could be a valid (though unlikely for video) filesize for yt-dlp -F
-                         }
-                    }
-
-
+                    // Assign to map
                     if (!string.IsNullOrWhiteSpace(formatId)) {
-                         // Debug.WriteLine($"FormatFOutputParser: ID='{formatId}', Extracted FilesizeStr='{filesizeStr}' from line: '{line}'");
                         idToFilesizeMap[formatId] = filesizeStr;
                     }
                 }
