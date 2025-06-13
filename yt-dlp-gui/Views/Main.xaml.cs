@@ -306,6 +306,22 @@ namespace yt_dlp_gui.Views {
                     NullValueHandling = NullValueHandling.Ignore
                 });
 
+                // Save raw JSON
+                if (Data.Video != null) {
+                    string jsonDumpsPath = Path.Combine(App.AppPath, "JsonDumps");
+                    Directory.CreateDirectory(jsonDumpsPath);
+                    string videoTitle = Data.Video?.title ?? "UnknownVideo";
+                    string invalidCharsRegex = string.Format("[{0}]", Regex.Escape(new string(Path.GetInvalidFileNameChars())));
+                    string sanitizedTitle = Regex.Replace(videoTitle, invalidCharsRegex, "_");
+                    string timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+                    string jsonFilePath = Path.Combine(jsonDumpsPath, $"{sanitizedTitle}_{timestamp}.json");
+                    try {
+                        File.WriteAllText(jsonFilePath, std);
+                    } catch (Exception ex) {
+                        Debug.WriteLine($"Error saving JSON dump: {ex.Message}");
+                    }
+                }
+
                 //Reading Chapters
                 {
                     Data.Chapters.Clear();
