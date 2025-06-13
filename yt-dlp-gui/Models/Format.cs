@@ -92,26 +92,30 @@ namespace yt_dlp_gui.Models {
     public static class ExtensionFormat {
         public static void LoadFromVideo(this ConcurrentObservableCollection<Format> source, List<Format> from) { //, Video from
             foreach (var row in from) { //from.formats
-                // Ensure 'row' is a 'Format' object.
-                // The 'filesize' and 'filesize_approx' properties on 'row' are assumed to be populated
-                // directly by JSON deserialization by this point if the fields existed in JSON.
+                // 'row' is a Format object.
+                // 'row.filesize' and 'row.filesize_approx' are assumed to have been populated
+                // by the JSON deserializer if the corresponding fields were in the JSON.
 
-                long? original_filesize_json = row.filesize; // Value from JSON "filesize" field
-                long? original_filesize_approx_json = row.filesize_approx; // Value from JSON "filesize_approx" field
+                long? exact_size_from_json = row.filesize;
+                long? approx_size_from_json = row.filesize_approx;
 
-                if (original_filesize_approx_json.HasValue) {
-                    // yt-dlp provided an approximate filesize. This is the one to use for display.
-                    row.filesize = original_filesize_approx_json.Value;
+                if (approx_size_from_json.HasValue && approx_size_from_json.Value > 0) {
+                    // A positive approximate filesize is available. This is the definitive source.
+                    row.filesize = approx_size_from_json.Value;
                     row.isFilesizeApprox = true;
-                } else if (original_filesize_json.HasValue) {
-                    // No approximate filesize from yt-dlp, but an exact one is present.
-                    // row.filesize already holds this value from JSON deserialization.
+                } else if (exact_size_from_json.HasValue) {
+                    // No valid (positive) approximation was found, but an exact filesize is available.
+                    // (This also handles the case where approx_size_from_json might have been present but <= 0)
+                    // Ensure 'row.filesize' reflects this exact value from original JSON deserialization.
+                    row.filesize = exact_size_from_json.Value;
                     row.isFilesizeApprox = false;
                 } else {
-                    // Neither filesize_approx nor filesize were present in JSON for this format.
-                    row.filesize = null; // Ensure filesize is explicitly null if no size info at all.
+                    // Neither a positive approximate filesize nor an exact filesize is available from JSON.
+                    row.filesize = null;
                     row.isFilesizeApprox = false;
                 }
+                // All other processing of 'row' (type classification, codec renaming, etc.) follows this block.
+                // No other part of this method should alter 'row.isFilesizeApprox'.
 
                 // Classification logic
                 bool vcodecPresent = !string.IsNullOrEmpty(row.vcodec) && row.vcodec.ToLower() != "none";
