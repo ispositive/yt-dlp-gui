@@ -3,6 +3,8 @@ name: yt-dlp GUI CI Builder
 on:
   push:
     branches: [ "master" ]
+  release:
+    types: [created]
 
 jobs:
 
@@ -61,6 +63,17 @@ jobs:
           exit 0
         }
       shell: pwsh
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./publish_output/yt-dlp-gui.exe
+        asset_name: yt-dlp-gui.exe
+        asset_content_type: application/octet-stream
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Build Artifact
       uses: actions/upload-artifact@v4.3.4
