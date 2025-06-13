@@ -154,7 +154,7 @@ namespace yt_dlp_gui.Libs {
                             // Use regex to match the actual filesize pattern from the extracted substring
                             // This helps trim any trailing garbage if potentialEnd was too generous.
                             // Regex: optional ~, digits and dot, optional unit.
-                            var sizeMatch = System.Text.RegularExpressions.Regex.Match(extractedSubstring, @"^~?[0-9\.]+([KMGT]i?B|[B])?");
+                            var sizeMatch = System.Text.RegularExpressions.Regex.Match(extractedSubstring, @"^~?\s*[0-9\.]+([KMGT]i?B|[B])?");
                             if (sizeMatch.Success) {
                                 filesizeStr = sizeMatch.Value;
                             } else {

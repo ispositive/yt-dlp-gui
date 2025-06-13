@@ -351,29 +351,41 @@ namespace yt_dlp_gui.Views {
                     if (!string.IsNullOrWhiteSpace(fOutput)) {
                         Dictionary<string, string> filesizeMapF = FormatFOutputParser.Parse(fOutput); // Use the new parser
 
-                        if (filesizeMapF.Any()) {
-                            Debug.WriteLine($"Parsed {filesizeMapF.Count} entries from -F output.");
-                            // Augment Data.Formats
+                        if (filesizeMapF.Any()) { // Check if map has any entries before iterating
+                            Debug.WriteLine($"[AugmentLogic] Starting augmentation. Filesize map from -F has {filesizeMapF.Count} entries.");
                             foreach (var format in Data.Formats) {
-                                if (!format.filesize.HasValue) {
+                                string initialFilesizeDisplay = format.FilesizeDisplayString; // Get initial display value for logging
+                                long? initialSizeBytes = format.filesize; // Get initial byte value
+
+                                Debug.WriteLine($"[AugmentLogic] Processing Format ID: {format.format_id}. Initial Filesize (bytes): {initialSizeBytes?.ToString() ?? "null"}. Initial Display: '{initialFilesizeDisplay}'. IsApprox: {format.isFilesizeApprox}");
+
+                                if (!format.filesize.HasValue) { // Key condition: Only augment if JSON didn't provide a size
+                                    Debug.WriteLine($"[AugmentLogic] Format ID: {format.format_id} - JSON filesize is NULL. Attempting to use -F data.");
                                     if (filesizeMapF.TryGetValue(format.format_id, out string filesizeStrF) && !string.IsNullOrWhiteSpace(filesizeStrF)) {
-                                        Debug.WriteLine($"Found filesize '{filesizeStrF}' for format ID '{format.format_id}' in -F output.");
+                                        Debug.WriteLine($"[AugmentLogic] Format ID: {format.format_id} - Found raw filesize string from -F: '{filesizeStrF}'");
+
                                         ParsedSizeInfo parsedSize = SizeStringConverter.TryParseHumanReadableSize(filesizeStrF);
                                         if (parsedSize.Success && parsedSize.FilesizeInBytes.HasValue) {
+                                            Debug.WriteLine($"[AugmentLogic] Format ID: {format.format_id} - Successfully parsed -F string. New Size (bytes): {parsedSize.FilesizeInBytes.Value}, IsApprox: {parsedSize.IsApproximate}");
                                             format.filesize = parsedSize.FilesizeInBytes.Value;
                                             format.isFilesizeApprox = parsedSize.IsApproximate;
-                                            Debug.WriteLine($"Updated format ID '{format.format_id}': filesize={format.filesize}, isApprox={format.isFilesizeApprox}");
                                         } else {
-                                            Debug.WriteLine($"Failed to parse size string '{filesizeStrF}' for format ID '{format.format_id}'.");
+                                            Debug.WriteLine($"[AugmentLogic] Format ID: {format.format_id} - FAILED to parse -F string: '{filesizeStrF}'. Filesize remains NULL.");
                                         }
+                                    } else {
+                                        Debug.WriteLine($"[AugmentLogic] Format ID: {format.format_id} - No non-empty filesize string found in -F map. Filesize remains NULL.");
                                     }
+                                } else {
+                                    Debug.WriteLine($"[AugmentLogic] Format ID: {format.format_id} - JSON filesize HAS VALUE ({initialSizeBytes}). No augmentation from -F needed.");
                                 }
+                                // Log final state for this format after augmentation attempt
+                                // Debug.WriteLine($"[AugmentLogic] Format ID: {format.format_id}. Final Filesize (bytes): {format.filesize?.ToString() ?? "null"}. Final Display: '{format.FilesizeDisplayString}'. Final IsApprox: {format.isFilesizeApprox}");
                             }
                         } else {
-                            Debug.WriteLine("Parsed no entries from -F output or parser returned empty map.");
+                            Debug.WriteLine("[AugmentLogic] Filesize map from -F is empty. No augmentation will be performed.");
                         }
                     } else {
-                        Debug.WriteLine("yt-dlp -F output was empty or could not be fetched.");
+                        Debug.WriteLine("[AugmentLogic] yt-dlp -F output was empty or could not be fetched.");
                     }
                 }
                 //读取 Subtitles
