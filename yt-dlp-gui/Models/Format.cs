@@ -1,6 +1,7 @@
 ﻿using Swordfish.NET.Collections;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.ComponentModel;
 using Newtonsoft.Json; // Added for JsonConverter attribute
 
@@ -33,6 +34,25 @@ namespace yt_dlp_gui.Models {
         public string format { get; set; } = string.Empty;
         public string resolution { get; set; } = string.Empty;
         public string info { get; set; } = string.Empty;
+
+        private string ConvertBytesToHumanReadable(long bytes) {
+            if (bytes == 0) return "0 B";
+            long k = 1024;
+            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            int i = (int)Math.Floor(Math.Log(bytes) / Math.Log(k));
+            double size = bytes / Math.Pow(k, i);
+            return string.Format(CultureInfo.InvariantCulture, "{0:0.00}{1}", size, sizes[i]);
+        }
+
+        public string FilesizeDisplayString {
+            get {
+                if (filesize.HasValue) {
+                    string sizeStr = ConvertBytesToHumanReadable(filesize.Value);
+                    return isFilesizeApprox ? $"~{sizeStr}" : sizeStr;
+                }
+                return "N/A";
+            }
+        }
     }
     public class ComparerAudio : IComparer<Format> {
         public int Compare(Format? x, Format? y) {
