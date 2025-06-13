@@ -64,7 +64,7 @@ namespace yt_dlp_gui.Models {
         private string ConvertBytesToHumanReadable(long bytes) {
             if (bytes == 0) return "0 B";
             long k = 1024;
-            string[] sizes = { "B", "KB", "MB", "GB", "TB" };
+            string[] sizes = { "B", "KiB", "MiB", "GiB", "TiB" };
             int i = (int)Math.Floor(Math.Log(bytes) / Math.Log(k));
             double size = bytes / Math.Pow(k, i);
             return string.Format(CultureInfo.InvariantCulture, "{0:0.00}{1}", size, sizes[i]);
