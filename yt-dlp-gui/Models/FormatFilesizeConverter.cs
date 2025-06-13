@@ -5,9 +5,7 @@ using System.Globalization; // Required for CultureInfo.InvariantCulture
 
 namespace yt_dlp_gui.Models {
     public class FormatFilesizeConverter : JsonConverter<Format> {
-        public override bool CanConvert(Type objectType) {
-            return objectType == typeof(Format);
-        }
+        // Removed CanConvert method, as it cannot override the sealed method in JsonConverter<Format>
 
         public override void WriteJson(JsonWriter writer, Format value, JsonSerializer serializer) {
             throw new NotImplementedException("Serialization back to JSON is not implemented for FormatFilesizeConverter.");
@@ -54,7 +52,6 @@ namespace yt_dlp_gui.Models {
                         format.filesize = parsedSize;
                     } else {
                         format.filesize = null;
-                        // Optionally log error: Console.WriteLine($"Error parsing approximate filesize: {filesizeStr.Substring(1)}");
                     }
                 } else {
                     format.isFilesizeApprox = false;
@@ -62,7 +59,6 @@ namespace yt_dlp_gui.Models {
                         format.filesize = parsedSize;
                     } else {
                         format.filesize = null;
-                        // Optionally log error: Console.WriteLine($"Error parsing exact filesize: {filesizeStr}");
                     }
                 }
             } else {
