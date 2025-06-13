@@ -100,29 +100,49 @@ namespace yt_dlp_gui.Models {
                     // isFilesizeApprox remains false (its default).
                     row.isFilesizeApprox = false;
                 }
-                //分类
-                if (row.vcodec != "none" && row.acodec != "none") {
+
+                // Classification logic
+                bool vcodecPresent = !string.IsNullOrEmpty(row.vcodec) && row.vcodec.ToLower() != "none";
+                bool acodecPresent = !string.IsNullOrEmpty(row.acodec) && row.acodec.ToLower() != "none";
+
+                if (vcodecPresent && acodecPresent) {
                     row.type = FormatType.package;
                     if (row.height.HasValue && row.width.HasValue) {
                         row.resolution = $"{row.width.Value}x{row.height.Value}";
                     }
-                } else if (row.vcodec != "none") {
+                } else if (vcodecPresent) {
                     row.type = FormatType.video;
                     if (row.height.HasValue && row.width.HasValue) {
                         row.resolution = $"{row.width.Value}x{row.height.Value}";
                     }
-                } else if (row.acodec != "none") { // Handles known acodecs AND "unknown" if JSON preserves "unknown"
+                } else if (acodecPresent) {
+                    // acodec is present, vcodec is not. This includes acodec == "unknown".
                     row.type = FormatType.audio;
                 } else {
-                    // This block is hit if vcodec is "none" (or empty) AND acodec is "none".
-                    // This could happen if an original "unknown" acodec was translated to "none" in the JSON.
-                    // We check other indicators to see if it should still be FormatType.audio.
-                    if ((string.IsNullOrEmpty(row.vcodec) || row.vcodec.ToLower() == "none") &&
-                        (row.acodec == "none") && /* acodec is "none" */
-                        (row.format != null && row.format.ToLower().Contains("audio only"))) { /* Check the 'format' string */
-                        row.type = FormatType.audio; // Reclassify as audio
+                    // Both vcodec and acodec are effectively absent (null, empty, or "none").
+                    // This is where we need to be careful for misclassified videos or audios.
+                    bool isLikelyAudio = row.format != null && row.format.ToLower().Contains("audio only");
+                    bool isLikelyVideo = row.height.HasValue && row.height.Value > 0 &&
+                                         (row.format != null && !row.format.ToLower().Contains("storyboard") && !row.format.ToLower().Contains("images"));
+
+                    if (isLikelyAudio) {
+                        row.type = FormatType.audio;
+                    } else if (isLikelyVideo) {
+                        row.type = FormatType.video;
+                        // Ensure resolution is set if we reclassify as video here
+                        if (row.height.HasValue && row.width.HasValue) {
+                            row.resolution = $"{row.width.Value}x{row.height.Value}";
+                        } else if (row.format != null) {
+                            // Attempt to parse WxH from format string if vcodec was missing and resolution not set
+                            var match = System.Text.RegularExpressions.Regex.Match(row.format, @"(\d{3,})x(\d{3,})");
+                            if (match.Success && decimal.TryParse(match.Groups[1].Value, out decimal parsedWidth) && decimal.TryParse(match.Groups[2].Value, out decimal parsedHeight)) {
+                                row.width = parsedWidth;
+                                row.height = parsedHeight;
+                                row.resolution = $"{row.width.Value}x{row.height.Value}";
+                            }
+                        }
                     } else {
-                        row.type = FormatType.other; // Otherwise, it's genuinely 'other'
+                        row.type = FormatType.other;
                     }
                 }
                 //Video Codec
