@@ -92,12 +92,24 @@ namespace yt_dlp_gui.Models {
     public static class ExtensionFormat {
         public static void LoadFromVideo(this ConcurrentObservableCollection<Format> source, List<Format> from) { //, Video from
             foreach (var row in from) { //from.formats
-                if (row.filesize_approx.HasValue) {
-                    row.filesize = row.filesize_approx.Value; // Use approximate filesize if available
+                // Ensure 'row' is a 'Format' object.
+                // The 'filesize' and 'filesize_approx' properties on 'row' are assumed to be populated
+                // directly by JSON deserialization by this point if the fields existed in JSON.
+
+                long? original_filesize_json = row.filesize; // Value from JSON "filesize" field
+                long? original_filesize_approx_json = row.filesize_approx; // Value from JSON "filesize_approx" field
+
+                if (original_filesize_approx_json.HasValue) {
+                    // yt-dlp provided an approximate filesize. This is the one to use for display.
+                    row.filesize = original_filesize_approx_json.Value;
                     row.isFilesizeApprox = true;
+                } else if (original_filesize_json.HasValue) {
+                    // No approximate filesize from yt-dlp, but an exact one is present.
+                    // row.filesize already holds this value from JSON deserialization.
+                    row.isFilesizeApprox = false;
                 } else {
-                    // If filesize_approx is not present, filesize already holds the exact value (or null) from JSON.
-                    // isFilesizeApprox remains false (its default).
+                    // Neither filesize_approx nor filesize were present in JSON for this format.
+                    row.filesize = null; // Ensure filesize is explicitly null if no size info at all.
                     row.isFilesizeApprox = false;
                 }
 
