@@ -146,12 +146,9 @@ namespace yt_dlp_gui.Models {
                 // All other processing of 'row' (type classification, codec renaming, etc.) follows this block.
                 // No other part of this method should alter 'row.isFilesizeApprox'.
 
-                // Classification logic
-                // NOTE: The classification logic in the converter might need to be moved here
-                // if it depends on other properties being set by yt-dlp not covered by direct JSON mapping.
-                // For now, assuming the converter handles 'type' sufficiently or it's correctly mapped.
-                bool vcodecPresent = !string.IsNullOrEmpty(row.vcodec) && row.vcodec.ToLower() != "none";
-                bool acodecPresent = !string.IsNullOrEmpty(row.acodec) && row.acodec.ToLower() != "none";
+                // ----- Start of code to restore -----
+                bool vcodecPresent = !string.IsNullOrEmpty(row.vcodec) && row.vcodec.ToLowerInvariant() != "none";
+                bool acodecPresent = !string.IsNullOrEmpty(row.acodec) && row.acodec.ToLowerInvariant() != "none";
 
                 if (vcodecPresent && acodecPresent) {
                     row.type = FormatType.package;
@@ -164,14 +161,12 @@ namespace yt_dlp_gui.Models {
                         row.resolution = $"{row.width.Value}x{row.height.Value}";
                     }
                 } else if (acodecPresent) {
-                    // acodec is present, vcodec is not. This includes acodec == "unknown".
                     row.type = FormatType.audio;
                 } else {
-                    // Both vcodec and acodec are effectively absent (null, empty, or "none").
-                    // This is where we need to be careful for misclassified videos or audios.
-                    bool isLikelyAudio = row.format != null && row.format.ToLower().Contains("audio only");
+                    // Fallback logic
+                    bool isLikelyAudio = !string.IsNullOrEmpty(row.format) && row.format.ToLowerInvariant().Contains("audio only");
                     bool isLikelyVideo = row.height.HasValue && row.height.Value > 0 &&
-                                         (row.format != null && !row.format.ToLower().Contains("storyboard") && !row.format.ToLower().Contains("images"));
+                                         (!string.IsNullOrEmpty(row.format) && !row.format.ToLowerInvariant().Contains("storyboard") && !row.format.ToLowerInvariant().Contains("images"));
 
                     if (isLikelyAudio) {
                         row.type = FormatType.audio;
@@ -180,8 +175,9 @@ namespace yt_dlp_gui.Models {
                         // Ensure resolution is set if we reclassify as video here
                         if (row.height.HasValue && row.width.HasValue) {
                             row.resolution = $"{row.width.Value}x{row.height.Value}";
-                        } else if (row.format != null) {
+                        } else if (!string.IsNullOrEmpty(row.format)) {
                             // Attempt to parse WxH from format string if vcodec was missing and resolution not set
+                            // Ensure Regex is available: using System.Text.RegularExpressions;
                             var match = System.Text.RegularExpressions.Regex.Match(row.format, @"(\d{3,})x(\d{3,})");
                             if (match.Success && decimal.TryParse(match.Groups[1].Value, out decimal parsedWidth) && decimal.TryParse(match.Groups[2].Value, out decimal parsedHeight)) {
                                 row.width = parsedWidth;
@@ -193,6 +189,7 @@ namespace yt_dlp_gui.Models {
                         row.type = FormatType.other;
                     }
                 }
+                // ----- End of code to restore -----
                 //Video Codec
                 if (row.vcodec.StartsWith("vp9", StringComparison.InvariantCultureIgnoreCase)) {
                     row.vcodec = "VP9";
