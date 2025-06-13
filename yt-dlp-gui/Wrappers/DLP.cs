@@ -320,6 +320,72 @@ namespace yt_dlp_gui.Wrappers {
 
             return this;
         }
+
+        public string GetFormatListingOutput() {
+            // Step 1: Basic checks
+            if (string.IsNullOrWhiteSpace(this.Url) || string.IsNullOrWhiteSpace(Path_DLP) || !File.Exists(Path_DLP)) {
+                Debug.WriteLine("GetFormatListingOutput: URL or Path_DLP is invalid or DLP executable not found.");
+                return string.Empty;
+            }
+
+            // Step 2: Construct arguments
+            string currentArgs = $"-F --no-playlist --ignore-config {this.Url.QS()}";
+
+            // Step 3: ProcessStartInfo
+            var info = new ProcessStartInfo() {
+                FileName = Path_DLP,
+                Arguments = currentArgs,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                StandardOutputEncoding = System.Text.Encoding.UTF8,
+                StandardErrorEncoding = System.Text.Encoding.UTF8
+            };
+
+            // Step 4: StringBuilder
+            var outputBuilder = new System.Text.StringBuilder();
+
+            // Step 5-10: Process execution and output collection
+            using (var process = new Process()) {
+                process.StartInfo = info;
+
+                // Step 6: OutputDataReceived handler
+                process.OutputDataReceived += (sender, e) => {
+                    if (e.Data != null) {
+                        outputBuilder.AppendLine(e.Data);
+                    }
+                };
+
+                // Step 7: ErrorDataReceived handler
+                process.ErrorDataReceived += (sender, e) => {
+                    if (e.Data != null) {
+                        Debug.WriteLine($"YT-DLP -F STDERR: {e.Data}");
+                    }
+                };
+
+                try {
+                    // Step 8a: Debug log
+                    Debug.WriteLine($"Executing for -F: {info.FileName} {info.Arguments}");
+                    process.Start();
+                    // Step 8b & 8c: Begin read lines
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+                    // Step 8d: Wait for exit
+                    process.WaitForExit();
+                    // Step 8e: Check exit code
+                    if (process.ExitCode != 0) {
+                        Debug.WriteLine($"YT-DLP -F process exited with code {process.ExitCode}.");
+                    }
+                } catch (Exception ex) { // Step 9: Catch exceptions
+                    Debug.WriteLine($"Exception during yt-dlp -F execution: {ex.Message}");
+                    return string.Empty;
+                }
+            } // Process is disposed here
+
+            // Step 10: Return collected output
+            return outputBuilder.ToString();
+        }
     }
     public static class DLPExtend {
         public static string QS(this string str) {
