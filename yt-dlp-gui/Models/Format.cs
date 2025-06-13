@@ -101,10 +101,19 @@ namespace yt_dlp_gui.Models {
                     if (row.height.HasValue && row.width.HasValue) {
                         row.resolution = $"{row.width.Value}x{row.height.Value}";
                     }
-                } else if (row.acodec != "none") {
+                } else if (row.acodec != "none") { // Handles known acodecs AND "unknown" if JSON preserves "unknown"
                     row.type = FormatType.audio;
                 } else {
-                    row.type = FormatType.other;
+                    // This block is hit if vcodec is "none" (or empty) AND acodec is "none".
+                    // This could happen if an original "unknown" acodec was translated to "none" in the JSON.
+                    // We check other indicators to see if it should still be FormatType.audio.
+                    if ((string.IsNullOrEmpty(row.vcodec) || row.vcodec.ToLower() == "none") &&
+                        (row.acodec == "none") && /* acodec is "none" */
+                        (row.format != null && row.format.ToLower().Contains("audio only"))) { /* Check the 'format' string */
+                        row.type = FormatType.audio; // Reclassify as audio
+                    } else {
+                        row.type = FormatType.other; // Otherwise, it's genuinely 'other'
+                    }
                 }
                 //Video Codec
                 if (row.vcodec.StartsWith("vp9", StringComparison.InvariantCultureIgnoreCase)) {
