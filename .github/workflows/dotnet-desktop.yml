@@ -1,6 +1,8 @@
 name: yt-dlp GUI CI Builder
 
 on:
+  push:
+    branches: [ "master" ]
   release:
     types: [created]
 
@@ -31,6 +33,7 @@ jobs:
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
+      if: github.event_name == 'release'
       with:
         tag_name: ${{ github.ref_name }}
         release_name: Release ${{ github.ref_name }}
@@ -75,6 +78,7 @@ jobs:
 
     - name: Upload Release Asset
       uses: actions/upload-release-asset@v1
+      if: github.event_name == 'release'
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./publish_output/yt-dlp-gui.exe
